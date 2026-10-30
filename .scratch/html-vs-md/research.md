@@ -358,7 +358,7 @@ Search Engine Land 报道（Barry Schwartz，2026-02-06）称 Google Search 与 
     }
   ],
   "changedFiles": [
-    "C:\\Users\\Administrator\\.pi\\agent\\sessions\\--D--Develop-md-to-html--\\subagent-artifacts\\outputs\\99205b91-c5c9-4b2c-8f5b-e59eff80988d\\research.md"
+    ".scratch/html-vs-md/research.md"
   ],
   "testsAddedOrUpdated": [],
   "commandsRun": [

@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "description": "把写给 AI 的长篇 markdown 变成可分享的单文件 HTML 阅读面",
+  "license": "MIT",
+  "author": "crane <1030784773@qq.com>",
   "bin": {
     "md2html": "src/cli.mjs"
   },
