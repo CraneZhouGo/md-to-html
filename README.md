@@ -1,10 +1,12 @@
 # md-to-html
 
-把写给 AI 的长篇 markdown，变成**能一口气读完、能直接发给别人**的单文件 HTML。
+把写给 AI 的长篇 markdown 渲染成**一个 HTML 文件**：能一口气读完，也能直接发给别人。
 
-真源永远是 markdown；HTML 是随时可丢弃重建的阅读面。同一份内容保留两种表示：HTML 给人读，`.md` 给 agent 读。
+真源永远是 markdown，HTML 是随时可丢弃、随时重建的阅读面。同一份内容留两种表示：HTML 给人读，`.md` 给 agent 读。
 
 ## 用法
+
+需要 Node ≥ 18（产物本身零依赖，拿到 HTML 的人不需要 Node）。
 
 ```bash
 npm install
@@ -16,7 +18,7 @@ npm link
 npm run render:examples
 
 # 渲染单个文件，输出到 out/
-node src/cli.mjs .scratch/html-vs-md/research.md --out out
+node src/cli.mjs doc.md --out out
 
 # 批量（默认同时生成 index.md）
 node src/cli.mjs docs/*.md --out out
@@ -35,7 +37,7 @@ node src/cli.mjs doc.md --out out --with-source
 
 `--with-source` 是为**转发**准备的：默认输出目录里只有 HTML，顶栏「原始 .md」用相对路径指回你本机那份真源；制品一旦转到别人机器上，这个链接就是死链。加上它，真源副本落在 HTML 旁边，链接改指副本，收件人也能拿到原始稿。同一份 `.md` 因此只有在你显式要求时才变成两份。
 
-配套的 agent skill 装在 `~/.agents/skills/md-to-html/`（全局，不进仓库）：它靠 `npm link` 出来的 `md2html` 调本渲染器，所以那层 symlink 断了 skill 也跟着失效（`npm link` 重跑一次即可）。
+配套的 agent skill（只对作者本人有用，外部使用者可跳过）装在 `~/.agents/skills/md-to-html/`（全局，不进仓库）：它靠 `npm link` 出来的 `md2html` 调本渲染器，所以那层 symlink 断了 skill 也跟着失效（`npm link` 重跑一次即可）。
 
 `me.json` 只接受这几个键，未知键会被忽略：
 
@@ -58,15 +60,17 @@ node src/cli.mjs doc.md --out out --with-source
 
 ## 产物长什么样
 
+（下面两张截图用的是 `examples/Java服务架构演进与部署实践总结.md`，白天 / 夜间）
+
 | 白天 | 夜间 |
 | --- | --- |
 | ![白天：静态章节导航 + 正文 + 本页目录](docs/assets/reading-surface.png) | ![夜间](docs/assets/reading-surface-dark.png) |
 
-左栏章节导航、右栏本页目录、顶栏搜索与明暗切换都是构建期写进 HTML 的，不靠 JS 现算。
-
-图示（`mermaid` 子集与 ASCII 图）在构建期就是静态 SVG：零运行时、零 Canvas，文字仍可被 Ctrl+F 搜到、被 agent 选中：
+图示（`mermaid` 子集与 ASCII 图）同样在构建期就画成静态 SVG：
 
 ![用例图与排期图](docs/assets/diagrams.png)
+
+零运行时、零 Canvas：文字仍是真 `<text>` 节点，能被 Ctrl+F 搜到、被 agent 抓到。
 
 - 三列布局：**左栏 = 章节导航（`h2`，全文档）/ 右栏 = 当前章的小节（`h3`）**，两者不重复；顶栏含搜索、明暗切换、"原始 .md"出口。
 - 右栏分组是静态写入 DOM 的（无 JS、Ctrl+F 时内容仍在），JS 只切换显示哪一组。
@@ -120,8 +124,7 @@ npm test            # 两套都跑
 npm run test:examples   # 只跑"真实文档"回归
 ```
 
-**第一套 `test/determinism.mjs`：不变量**
-
+**第一套 `test/determinism.mjs`：不变量（93 项）**
 
 - 同一真源 + 无偏好 ⇒ **逐字节相同**的输出
 - 产物零网络依赖：无 `<link>`、无 `@font-face`、无外链 `<script>`
@@ -132,23 +135,20 @@ npm run test:examples   # 只跑"真实文档"回归
 
 > 锚点 id 是中文时，浏览器返回的 `a.hash` 是 percent-encoded 的，必须 `decodeURIComponent` 后再与元素 id 比较——这一条曾经让点击与滚动高亮全部静默失效。
 
+**第二套 `test/examples.mjs`：文档即测试（50 项）**
+
+把 `examples/` 下的真实文档当回归集：逐一渲染并断言"这批文档应该长什么样"（各类图的张数、ASCII 转 SVG 的数量、故意不支持的语法是否仍退回代码块、SVG 宽度与文字节点、索引是否列出全部示例）。
+
+期望值写在文件顶部的 `EXPECT` 里——**文档改了或某个解析器退化，这里会先红**。验证过它能抓到问题：把 gantt 解析关掉，立刻报 2 项失败（gantt 图 0 张、退回代码块从 1 变成 2）。
+
 **第三套（手动，已结束）`test/human/`：人因测试**
 
-> 两轮数据已归档并得出结论（速度优势未复现），**实验已关闭、不再重跑**。详见 `test/human/README.md`。
-
-
-同一问题在「原始 markdown 纯文本」与「渲染后的 HTML」两种条件下的定位耗时。协议、预注册判定标准、已知局限都在 `test/human/README.md`。
+测的是同一问题在「原始 markdown 纯文本」与「渲染后的 HTML」两种条件下的定位耗时。两轮数据已归档、结论是速度优势**未复现**（第一轮的 35% 是练习效应），**实验已关闭、不再重跑**；协议、预注册判定标准与已知局限都在 `test/human/README.md`。
 
 ```bash
 npm run human:build && npm run human:serve   # 做 16 题
 npm run human:analyze                        # 出中位数/正确率/配对比较
 ```
-
-**第二套 `test/examples.mjs`：文档即测试**
-
-把 `examples/` 下的真实文档当回归集：逐一渲染并断言"这批文档应该长什么样"（各类图的张数、ASCII 转 SVG 的数量、故意不支持的语法是否仍退回代码块、SVG 宽度与文字节点、索引是否列出全部示例）。
-
-期望值写在文件顶部的 `EXPECT` 里——**文档改了或某个解析器退化，这里会先红**。验证过它能抓到问题：把 gantt 解析关掉，立刻报 2 项失败（gantt 图 0 张、退回代码块从 1 变成 2）。
 
 ## 目录
 
@@ -156,11 +156,12 @@ npm run human:analyze                        # 出中位数/正确率/配对比�
 examples/            真实示例文档（渲染器的活体回归集）
   Java服务架构演进与部署实践总结.md   604 行：10 张表 / 28 个代码块 / 12 张 ASCII 图
   diagrams.md        图型速查：八种图示各一例 + 一个"不支持"的对照
-  Redis集群与高可用_Java高级开发面试复习.md   2364 行：另一种文体（几乎无表格、131 个 text 块）
+  Redis集群与高可用_Java高级开发面试复习.md   2364 行：另一种文体（几乎无表格、130 个 text 块）
 src/                 渲染器
 test/                守门测试 + 自检样本 + 人因测试装置
   human/             定位任务实验（题库、计时台、分析脚本）
 docs/adr/            十条架构决策
+docs/agents/         agent 协作规范（issue 追踪、分诊标签、领域文档）
 docs/assets/         README 截图（由 out/ 渲染产物截下，非手绘）
 .github/workflows/   CI：Node 18/20/22 矩阵跑 npm test
 out/                 渲染产物（git 忽略，可随时用 npm run render:examples 重建）
@@ -178,7 +179,7 @@ out/                 渲染产物（git 忽略，可随时用 npm run render:exa
 | `src/index-md.mjs` | `index.md` 生成（与渲染同源，不解析 HTML） |
 | `src/highlight.mjs` | 轻量语法高亮：固定关键字表 + 单遍扫描，颜色由强调色推导 |
 | `src/visualize.mjs` | 确定性图形化：表格→卡片、列表→定义卡片/步骤流、注释开关 |
-| `src/highlight.mjs` 里的 `looksLikeDiagram` | ASCII 架构图识别（仅 text/plain 块，靠制表符与箭头） |
+| `src/markdown.mjs` 里的 `looksLikeDiagram` | ASCII 架构图识别（仅 text/plain 块，靠制表符与箭头） |
 | `src/diagrams/layered.mjs` | 四种 ASCII 写法 → 内联 SVG；布局确定性、朝向自动选、边多时走总线 |
 | `src/diagrams/svg.mjs` | SVG 原语：形状、连线裁剪、标签光晕、marker |
 | `src/diagrams/mermaid.mjs` | mermaid 子集解析 + 三种布局（分层 / 时序 / 网格 ER） |
@@ -189,12 +190,12 @@ out/                 渲染产物（git 忽略，可随时用 npm run render:exa
 
 决策依据全部在 `docs/adr/`（10 条）：0001 真源与阅读面 · 0002 单文件与静态导航 · 0003/0006 不改内容与确定性图形化 · 0004/0007 视觉契约 · 0005 个性化边界 · 0008/0009/0010 图示体系。
 
-## 项目状态（2026-10-30 收尾）
+## 项目状态（v0.1.0 · 2026-10-30）
 
-- **143 项断言**（`npm test`：不变量 110 + 真实文档回归 33）。
+- **143 项断言**（`npm test`：不变量 93 + 真实文档回归 50），Node 18/20/22 三种版本 CI 全绿。
 - **三份真实示例**：Java 架构（表格型）· Redis 面试（ASCII 图型）· 图型速查（语料型）。
 - **能力**：单文件 HTML 阅读面、构建期静态导航与目录、内嵌搜索、明暗主题、页面内自定义强调色、轻量语法高亮、表格→卡片/条形、列表→定义卡片/步骤流、ASCII 图→SVG、mermaid 子集六图、用例图扩展、`--profile` 个性化、`index.md` 索引。
-- **人因实验已结束**：两轮 N=1，结论是"读得更快"未获证实（第一轮的 35% 是练习效应）。装置与数据留档在 `test/human/`，不再重跑。
+- **人因实验已结束**：两轮 N=1，结论是"读得更快"未获证实（第一轮的 35% 是练习效应）。装置留档在 `test/human/`，逐条作答数据未入库，不再重跑。
 
 ## 继续时的入口
 
@@ -206,3 +207,7 @@ out/                 渲染产物（git 忽略，可随时用 npm run render:exa
 ## 有意不做
 
 打印样式（ADR-0004）· Canvas · 打包 mermaid 运行时（ADR-0009）· 结构层个性化（ADR-0005）· 活动图/泳道、C4、部署拓扑、依赖图、思维导图、git graph（各自需要新布局引擎，按需再加）。
+
+## 许可
+
+MIT，见 [`LICENSE`](LICENSE)。发现 bug 或有想法请开 [issue](https://github.com/CraneZhouGo/md-to-html/issues)。
