@@ -120,8 +120,9 @@ front-matter 兼容 Obsidian 的 `date created` / `date modified`（带空格的
 ## 测试
 
 ```bash
-npm test            # 两套都跑
+npm test                # 两套自动化测试都跑
 npm run test:examples   # 只跑"真实文档"回归
+npm run shots           # 重新生成 README 截图（需要本机 Chrome）
 ```
 
 **第一套 `test/determinism.mjs`：不变量（93 项）**
@@ -159,10 +160,11 @@ examples/            真实示例文档（渲染器的活体回归集）
   Redis集群与高可用_Java高级开发面试复习.md   2364 行：另一种文体（几乎无表格、130 个 text 块）
 src/                 渲染器
 test/                守门测试 + 自检样本 + 人因测试装置
+  screenshots.mjs    README 截图（playwright-core 驱动本机 Chrome）
   human/             定位任务实验（题库、计时台、分析脚本）
 docs/adr/            十条架构决策
 docs/agents/         agent 协作规范（issue 追踪、分诊标签、领域文档）
-docs/assets/         README 截图（由 out/ 渲染产物截下，非手绘）
+docs/assets/         README 截图（npm run shots 由渲染产物截下，非手绘）
 .github/workflows/   CI：Node 18/20/22 矩阵跑 npm test
 out/                 渲染产物（git 忽略，可随时用 npm run render:examples 重建）
 ```

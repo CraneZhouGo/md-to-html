@@ -3,6 +3,7 @@ name: test
 on:
   push:
     branches: [main]
+    tags: ['v*']   # 发版也必须绿过一次
   pull_request:
   workflow_dispatch:
 

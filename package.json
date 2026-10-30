@@ -16,7 +16,8 @@
     "test:examples": "node test/examples.mjs",
     "human:build": "node test/human/build.mjs",
     "human:serve": "node test/human/serve.mjs",
-    "human:analyze": "node test/human/analyze.mjs"
+    "human:analyze": "node test/human/analyze.mjs",
+    "shots": "node test/screenshots.mjs"
   },
   "dependencies": {
     "markdown-it": "^15.0.3"
@@ -28,5 +29,8 @@
     "type": "git",
     "url": "git+https://github.com/CraneZhouGo/md-to-html.git"
   },
-  "homepage": "https://github.com/CraneZhouGo/md-to-html#readme"
+  "homepage": "https://github.com/CraneZhouGo/md-to-html#readme",
+  "devDependencies": {
+    "playwright-core": "^1.64.1"
+  }
 }
