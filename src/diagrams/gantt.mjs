@@ -110,11 +110,22 @@ export function drawGantt(graph) {
   const totalDays = Math.max(1, Math.round((max - min) / DAY));
   const scale = Math.max(3, Math.min(9, Math.floor(720 / totalDays)));   // px / 天
   const chartW = totalDays * scale;
-  const width = MARGIN * 2 + LABEL_W + PAD + chartW;
-  const height = MARGIN * 2 + 34 + rows.length * ROW_H + 26;
+  // 条形右侧还要写「20d」，不留这一段最后一个标签会出血被裁掉
+  const BAR_LABEL_ROOM = 34;
+  const width = MARGIN * 2 + LABEL_W + PAD + chartW + BAR_LABEL_ROOM;
 
   const x0 = MARGIN + LABEL_W + PAD;
   const y0 = MARGIN + 34;
+
+  // 分区标题独占一段高度：否则它会压在上一行的任务名上（中文字形比英文高，视觉上直接叠字）
+  const SECTION_H = 20;
+  let extra = 0;
+  const yOf = rows.map((r, i) => {
+    if (i > 0 && r.section && r.section !== rows[i - 1].section) extra += SECTION_H;
+    return y0 + i * ROW_H + extra;
+  });
+  const chartBottom = yOf[yOf.length - 1] + ROW_H;
+  const height = MARGIN * 2 + 34 + rows.length * ROW_H + extra + 26;
   const dayX = d => x0 + Math.round((d - min) / DAY) * scale;
 
   const body = [];
@@ -132,16 +143,18 @@ export function drawGantt(graph) {
   }
   for (const tick of ticks) {
     const x = dayX(tick.t);
-    body.push(`<path class="dg-grid" d="M${x.toFixed(1)},${(y0 - 18).toFixed(1)} L${x.toFixed(1)},${(y0 + rows.length * ROW_H).toFixed(1)}"/>`);
-    body.push(label(x, y0 - 24, tick.text, 'dg-attr', 'start'));
+    // 贴近右边界时刻度改写左对齐，不然文字会被 viewBox 裁掉
+    const anchor = x > x0 + chartW - 60 ? 'end' : 'start';
+    body.push(`<path class="dg-grid" d="M${x.toFixed(1)},${(y0 - 18).toFixed(1)} L${x.toFixed(1)},${chartBottom.toFixed(1)}"/>`);
+    body.push(label(x, y0 - 24, tick.text, 'dg-attr', anchor));
   }
 
   // 分区底色
   let lastSection = null, startRow = 0;
   const flush = end => {
     if (lastSection === null) return;
-    const y = y0 + startRow * ROW_H + 2;
-    const h = (end - startRow) * ROW_H - 4;
+    const y = yOf[startRow] + 2;
+    const h = yOf[end - 1] + ROW_H - yOf[startRow] - 4;
     if (h > 0) body.push(`<rect class="dg-band" x="${x0}" y="${y.toFixed(1)}" width="${chartW}" height="${h.toFixed(1)}" rx="6"/>`);
   };
   rows.forEach((r, i) => {
@@ -152,7 +165,7 @@ export function drawGantt(graph) {
 
   // 任务条 + 名称
   rows.forEach((r, i) => {
-    const y = y0 + i * ROW_H;
+    const y = yOf[i];
     body.push(label(MARGIN, y + ROW_H / 2, r.name, 'dg-attr', 'start'));
     const x = dayX(r.start);
     const w = Math.max(4, Math.round((r.end - r.start) / DAY) * scale);
@@ -166,7 +179,7 @@ export function drawGantt(graph) {
   rows.forEach((r, i) => {
     if (!r.section || r.section === prev) return;
     prev = r.section;
-    body.push(label(MARGIN, y0 + i * ROW_H - 10, r.section, 'dg-strong', 'start'));
+    body.push(label(MARGIN, yOf[i] - 10, r.section, 'dg-strong', 'start'));
   });
 
   return wrap(width, height, body.join(''), graph.title || '排期图');
