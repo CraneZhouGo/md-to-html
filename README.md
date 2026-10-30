@@ -15,8 +15,8 @@ npm run render:examples
 # 渲染单个文件，输出到 out/
 node src/cli.mjs .scratch/html-vs-md/research.md --out out
 
-# 批量 + 生成索引
-node src/cli.mjs docs/*.md --out out --index
+# 批量（默认同时生成 index.md）
+node src/cli.mjs docs/*.md --out out
 
 # 个性化（只覆盖 token 层）
 node src/cli.mjs doc.md --out out --profile me.json
@@ -111,7 +111,10 @@ npm run test:examples   # 只跑"真实文档"回归
 
 > 锚点 id 是中文时，浏览器返回的 `a.hash` 是 percent-encoded 的，必须 `decodeURIComponent` 后再与元素 id 比较——这一条曾经让点击与滚动高亮全部静默失效。
 
-**第三套（手动）`test/human/`：人因测试**
+**第三套（手动，已结束）`test/human/`：人因测试**
+
+> 两轮数据已归档并得出结论（速度优势未复现），**实验已关闭、不再重跑**。详见 `test/human/README.md`。
+
 
 同一问题在「原始 markdown 纯文本」与「渲染后的 HTML」两种条件下的定位耗时。协议、预注册判定标准、已知局限都在 `test/human/README.md`。
 

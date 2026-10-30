@@ -129,6 +129,7 @@ table{width:100%;border-collapse:separate;border-spacing:0;margin:0;font-size:13
 th,td{padding:11px 13px;text-align:left;vertical-align:top;
   border-bottom:1px solid var(--border);border-right:1px solid var(--border)}
 th{background:var(--surface-2);font-weight:700}
+th.rowh{background:transparent;font-weight:600;text-align:left}
 tr:last-child td{border-bottom:0}
 td:last-child,th:last-child{border-right:0}
 tr:nth-child(even) td{background:color-mix(in srgb,var(--surface) 55%,var(--bg))}
@@ -247,6 +248,10 @@ pre code{padding:0;background:transparent;color:inherit;font-size:inherit;overfl
 .toc-empty{margin:0 0 0 13px;font-size:11px;color:var(--muted)}
 .doc-footer{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:58px;
   padding-top:18px;border-top:1px solid var(--border);color:var(--muted);font-size:12px}
+.skip-link{position:absolute;left:-9999px;top:8px;z-index:50;padding:8px 14px;border-radius:8px;
+  background:var(--accent);color:#fff;font-size:13px;text-decoration:none}
+.skip-link:focus{left:12px}
+.article:focus{outline:none}
 .mobile-menu{display:none}
 @media(max-width:1180px){:root{--toc:185px;--sidebar:220px}.brand{min-width:190px}.toc{padding-right:10px}}
 @media(max-width:900px){.layout{grid-template-columns:minmax(0,1fr)}.sidebar{display:none;position:fixed;
@@ -329,11 +334,12 @@ const JS = String.raw`
   article.querySelectorAll('pre').forEach(pre => {
     const b = document.createElement('button');
     b.className = 'copy-code'; b.type = 'button'; b.textContent = '复制代码';
+    b.setAttribute('aria-label', '复制代码');
     b.addEventListener('click', async () => {
       const code = pre.querySelector('code');
       if (!code) return;
       try { await navigator.clipboard.writeText(code.innerText); b.textContent = '已复制'; }
-      catch { b.textContent = '请手动复制'; }
+      catch { b.textContent = '请手动复制'; b.setAttribute('aria-label', '请手动复制'); }
       setTimeout(() => { b.textContent = '复制代码'; }, 1200);
     });
     pre.appendChild(b);
@@ -496,6 +502,7 @@ try{
 </script>
 </head>
 <body>
+<a class="skip-link" href="#article">跳到正文</a>
 <div class="progress" id="progress"></div>
 
 <header class="topbar">
@@ -536,7 +543,7 @@ ${p.navHtml}
   </aside>
 
   <main>
-    <article class="article" id="article">
+    <article class="article" id="article" tabindex="-1">
       <div class="doc-meta">
         ${pills}
       </div>

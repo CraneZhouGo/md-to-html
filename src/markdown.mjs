@@ -120,6 +120,41 @@ export function renderMarkdown(markdown, env = {}) {
   // 表格：横向滚动容器 + 数值列右对齐（ADR-0006 P0 的保守部分）
   md.renderer.rules.table_open = () => '<div class="tbl-wrap"><table>';
   md.renderer.rules.table_close = () => '</table></div>';
+  // 表格语义：表头加 scope="col"，每行第一个单元格提升为行头 th scope="row"。
+  // 屏幕阅读器靠这两条把"这个数字属于哪一行哪一列"读出来；我们 46% 的行是表格，
+  // 没有 scope 的话长表格读到第三十行就彻底失去方位。
+  md.core.ruler.push('table_headers', state => {
+    const t = state.tokens;
+    for (let i = 0; i < t.length; i++) {
+      if (t[i].type !== 'table_open') continue;
+      let end = i;
+      while (end < t.length && t[end].type !== 'table_close') end++;
+      let seenBody = false;
+      for (let j = i; j < end; j++) {
+        if (t[j].type === 'tbody_open') { seenBody = true; continue; }
+        if (t[j].type === 'th_open' && !seenBody) { t[j].attrSet('scope', 'col'); continue; }
+        if (t[j].type !== 'tr_open' || !seenBody) continue;
+        // 该行第一个 td 升为行头
+        for (let k = j + 1; k < end; k++) {
+          if (t[k].type === 'td_open') {
+            t[k].tag = 'th';
+            t[k].attrSet('scope', 'row');
+            t[k].attrJoin('class', 'rowh');
+            // 找到配对的 close，一起改标签
+            let depth = 1;
+            for (let m = k + 1; m < end; m++) {
+              if (t[m].type === 'td_open' || t[m].type === 'th_open') depth++;
+              if (t[m].type === 'td_close' || t[m].type === 'th_close') {
+                if (--depth === 0) { t[m].tag = 'th'; break; }
+              }
+            }
+            break;
+          }
+        }
+      }
+    }
+  });
+
   md.core.ruler.push('numeric_columns', state => {
     const t = state.tokens;
     for (let i = 0; i < t.length; i++) {

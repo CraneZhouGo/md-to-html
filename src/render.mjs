@@ -79,7 +79,7 @@ export async function renderFile(inputPath, opts = {}) {
   };
   const navHtml = chapters.map((h, i) =>
     `      <li><a href="#${escapeHtml(h.id)}"${cls(i === 0 && 'active')}` +
-    ` title="${escapeHtml(h.text)}">` +
+    `${i === 0 ? ' aria-current="true"' : ''} title="${escapeHtml(h.text)}">` +
     `<span class="nav-dot"></span><span class="nav-text">${escapeHtml(h.text)}</span></a></li>`).join('\n');
 
   // 右栏按章分组：静态写入全部分组（无 JS / Ctrl+F 仍完整），JS 只切换显隐

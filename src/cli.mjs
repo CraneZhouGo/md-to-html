@@ -7,13 +7,14 @@ import { writeIndex } from './index-md.mjs';
 
 function parseArgs(argv) {
   const files = [];
-  const opts = { outDir: undefined, profilePath: undefined, embed: false, index: false };
+  const opts = { outDir: undefined, profilePath: undefined, embed: false, index: true };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--out' || a === '-o') opts.outDir = argv[++i];
     else if (a === '--profile' || a === '-p') opts.profilePath = argv[++i];
     else if (a === '--embed') opts.embed = true;
     else if (a === '--index') opts.index = true;
+    else if (a === '--no-index') opts.index = false;
     else if (a === '--help' || a === '-h') { printHelp(); process.exit(0); }
     else if (a.startsWith('-')) { console.error(`未知参数: ${a}`); process.exit(2); }
     else files.push(a);
@@ -31,7 +32,7 @@ function printHelp() {
   -o, --out <dir>      输出目录（默认与源文件同目录）
   -p, --profile <json> 个性化配置（只覆盖 token 层，见 docs/adr/0005）
       --embed          把相对路径的图片内联成 data URI
-      --index          在输出目录额外生成 index.md
+      --no-index       不生成 index.md（默认会生成，见 ADR-0002）
   -h, --help           显示帮助
 
 约定:
