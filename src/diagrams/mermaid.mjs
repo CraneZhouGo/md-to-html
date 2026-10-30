@@ -253,10 +253,8 @@ function drawGraph(graph, { terminalIds = new Set() } = {}) {
 
 function drawFlow(graph) {
   const term = new Set();
-  const targets = new Set(graph.edges.map(e => e.to));
   const sources = new Set(graph.edges.map(e => e.from));
   for (const n of graph.nodes) if (graph.nodes.length > 2 && !sources.has(n.id) && /开始|结束|start|end/i.test(n.text)) term.add(n.id);
-  void targets;
 
   const { width, height, pos } = drawGraph(graph, { terminalIds: term });
   const body = [];
@@ -287,11 +285,8 @@ function drawState(graph) {
   const edges = [];
   const pos = new Map();
   const START = 18;
-  let order = 0;
-  const ids = new Map();
 
   // [*] 不画成框，画成实心圆（起点）或双圆环（终点）
-  for (const n of graph.nodes) ids.set(n.id, `n${order++}`);
   const pending = [];
   for (const e of graph.edges) {
     if (e.from === '[*]') { pending.push({ kind: 'start', to: e.to, label: e.label }); continue; }
@@ -302,7 +297,6 @@ function drawState(graph) {
   const drawn = drawGraph({ dir: 'TD', nodes, edges }, {});
   const { width, height, pos: base } = drawn;
   for (const [k, v] of base) pos.set(k, v);
-  void order; void ids;
 
   const body = [];
   // 起点圆与终点环放在对应节点的上方/下方

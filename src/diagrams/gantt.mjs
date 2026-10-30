@@ -2,7 +2,7 @@
 // 支持：title、dateFormat YYYY-MM-DD、section、任务行 `名称 :[id,] [after id | 日期,] 工期`
 // 工期单位：d（天）/ w（周）。不支持 axisFormat/tickInterval/excludes 等，遇到即整体退回。
 
-import { esc, textWidth, wrap, label, MARGIN, CHAR_W } from './svg.mjs';
+import { esc, wrap, label, MARGIN } from './svg.mjs';
 
 const clean = s => String(s ?? '').trim();
 const blank = s => !clean(s) || clean(s).startsWith('%%');
@@ -100,7 +100,6 @@ function schedule(tasks) {
 }
 
 const ROW_H = 30, BAR_H = 14, LABEL_W = 168, PAD = 16;
-const MS = DAY;
 
 export function drawGantt(graph) {
   const rows = schedule(graph.tasks);
@@ -170,7 +169,6 @@ export function drawGantt(graph) {
     body.push(label(MARGIN, y0 + i * ROW_H - 10, r.section, 'dg-strong', 'start'));
   });
 
-  void MS; void textWidth; void CHAR_W;
   return wrap(width, height, body.join(''), graph.title || '排期图');
 }
 

@@ -56,3 +56,8 @@ seed:3cca957497784020 · 模式 read · 掷骰指定：自选列表第 7 条
 三份都用同一份真实内容（`.scratch/html-vs-md/research.md` 的第 3 节），可直接双击对比。
 
 > 说明：根目录的 `templates/` 是给人双击对比的副本；`.scratch/` 是点目录，部分编辑器默认折叠或隐藏，原件留在 `.scratch/reading-surface/templates/`。
+
+
+---
+
+> **2026-10-30 收尾**：`templates/` 下的七份视觉方向稿（a–g）已从工作区删除——其中 a–f 是被否掉的方案，g 的形态已由 `src/template.mjs` 落地为生产实现。视觉世界本身记录在 `docs/adr/0007`，如需要复原任一方向稿，用 `git log -- templates/` 找到 `242cbf9` 后 `git show 242cbf9:templates/<文件名>` 取回。

@@ -6,7 +6,7 @@
 //   用户 --> 登录
 //   usecase 下单 : 含扩展说明   （冒号后是可选说明，暂只保留在标签里）
 
-import { esc, textWidth, boxWidth, wrap, label, path, clipLine, MARGIN, CHAR_W } from './svg.mjs';
+import { esc, textWidth, wrap, label, path, clipLine, MARGIN, CHAR_W } from './svg.mjs';
 
 const clean = s => String(s ?? '').trim();
 const blank = s => !clean(s) || clean(s).startsWith('%%');

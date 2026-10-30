@@ -106,5 +106,3 @@ export function highlight(code, lang) {
   flush();
   return { html: out, lang: key, highlighted: true };
 }
-
-export const SUPPORTED = Object.keys(LANG);

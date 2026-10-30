@@ -2,7 +2,7 @@
 // 这是第二份真实文档里最常见的形状，也是分层解析器明确拒绝的那一类（多链）。
 // 硬约束不变：文字全部是 <text>，可搜可选中（ADR-0006 / 0008）。
 
-import { textWidth, boxWidth, wrap, label, path, MARGIN, BOX_H, CHAR_W } from './svg.mjs';
+import { textWidth, boxWidth, wrap, label, path, MARGIN, BOX_H } from './svg.mjs';
 
 const clean = s => String(s).trim();
 const ARROW = /\s*(?:\u2192|->)\s*/;
@@ -86,5 +86,3 @@ export function renderMappingSvg(graph) {
   const height = Math.round(y - ROW_GAP + MARGIN);
   return { svg: wrap(width, height, body.join(''), '映射图'), width: Math.round(width), height };
 }
-
-export { CHAR_W };

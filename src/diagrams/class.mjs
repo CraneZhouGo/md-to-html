@@ -1,7 +1,7 @@
 // classDiagram 子集 -> 内联 SVG。类图是"结构图"，节点带成员列表，边有四种语义：
 // 继承（空心三角）、实现（空心三角 + 虚线）、组合（实心菱形）、聚合（空心菱形）、依赖（开放箭头）。
 
-import { esc, textWidth, boxWidth, wrap, label, path, clipLine, layerize, MARGIN, CHAR_W } from './svg.mjs';
+import { esc, textWidth, wrap, label, path, clipLine, layerize, MARGIN, CHAR_W } from './svg.mjs';
 
 const clean = s => String(s ?? '').trim();
 const blank = s => !clean(s) || clean(s).startsWith('%%');
