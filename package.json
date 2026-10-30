@@ -11,7 +11,10 @@
     "render": "node src/cli.mjs",
     "test": "node test/determinism.mjs && node test/examples.mjs",
     "render:examples": "node src/cli.mjs examples/*.md --out out/examples --index",
-    "test:examples": "node test/examples.mjs"
+    "test:examples": "node test/examples.mjs",
+    "human:build": "node test/human/build.mjs",
+    "human:serve": "node test/human/serve.mjs",
+    "human:analyze": "node test/human/analyze.mjs"
   },
   "dependencies": {
     "markdown-it": "^15.0.3"

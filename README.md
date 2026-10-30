@@ -111,6 +111,15 @@ npm run test:examples   # 只跑"真实文档"回归
 
 > 锚点 id 是中文时，浏览器返回的 `a.hash` 是 percent-encoded 的，必须 `decodeURIComponent` 后再与元素 id 比较——这一条曾经让点击与滚动高亮全部静默失效。
 
+**第三套（手动）`test/human/`：人因测试**
+
+同一问题在「原始 markdown 纯文本」与「渲染后的 HTML」两种条件下的定位耗时。协议、预注册判定标准、已知局限都在 `test/human/README.md`。
+
+```bash
+npm run human:build && npm run human:serve   # 做 16 题
+npm run human:analyze                        # 出中位数/正确率/配对比较
+```
+
 **第二套 `test/examples.mjs`：文档即测试**
 
 把 `examples/` 下的真实文档当回归集：逐一渲染并断言"这批文档应该长什么样"（各类图的张数、ASCII 转 SVG 的数量、故意不支持的语法是否仍退回代码块、SVG 宽度与文字节点、索引是否列出全部示例）。
@@ -125,7 +134,8 @@ examples/            真实示例文档（渲染器的活体回归集）
   diagrams.md        图型速查：八种图示各一例 + 一个"不支持"的对照
 templates/           早期视觉方向稿（a–g），保留作设计记录
 src/                 渲染器
-test/                守门测试 + 自检样本与素材
+test/                守门测试 + 自检样本 + 人因测试装置
+  human/             定位任务实验（题库、计时台、分析脚本）
 docs/adr/            十条架构决策
 out/                 渲染产物（git 忽略，可随时重建）
 ```

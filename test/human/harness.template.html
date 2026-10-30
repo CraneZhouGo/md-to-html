@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>人因测试 · 定位任务</title>
+<style>
+:root{--bg:#f5f6f8;--panel:#fff;--ink:#182230;--muted:#667085;--line:#e3e8ef;--accent:#5268e8}
+*{box-sizing:border-box}
+body{margin:0;height:100vh;display:flex;flex-direction:column;background:var(--bg);color:var(--ink);
+  font:14px/1.6 -apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+header{display:flex;align-items:center;gap:16px;padding:10px 18px;background:var(--panel);
+  border-bottom:1px solid var(--line);font-size:12px;color:var(--muted)}
+header b{color:var(--ink)}
+#timer{margin-left:auto;font:600 16px/1 ui-monospace,Consolas,monospace;color:var(--ink)}
+main{flex:1;display:flex;min-height:0}
+#doc{flex:1;border:0;background:#fff;border-right:1px solid var(--line)}
+aside{width:360px;flex:none;background:var(--panel);padding:20px;display:flex;flex-direction:column;overflow:auto}
+aside h2{font-size:13px;color:var(--muted);font-weight:600;margin:0 0 6px;letter-spacing:.06em;text-transform:uppercase}
+#q{font-size:17px;line-height:1.6;font-weight:600;margin:0 0 4px}
+#hint{font-size:12px;color:var(--muted);margin:0 0 18px}
+input[type=text]{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font:inherit}
+input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
+button{padding:10px 14px;border:1px solid var(--accent);border-radius:8px;background:var(--accent);
+  color:#fff;font:inherit;cursor:pointer}
+button.ghost{background:var(--panel);color:var(--ink);border-color:var(--line)}
+button:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:8px;margin-top:12px}
+#progress{margin-top:auto;padding-top:18px;font-size:12px;color:var(--muted)}
+#intro{max-width:640px;margin:6vh auto;background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;padding:28px 30px}
+#intro h1{font-size:20px;margin:0 0 10px}
+#intro ol{padding-left:20px;margin:10px 0 18px}
+#intro li{margin:6px 0}
+#intro .note{background:#fffaf0;border:1px solid #f2e3c9;border-radius:8px;padding:12px 14px;font-size:13px}
+#done{display:none}
+table{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.hidden{display:none}
+kbd{border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:11px;background:#fafbfc}
+</style>
+</head>
+<body>
+
+<header>
+  <span>条件 <b id="cond">—</b></span>
+  <span>第 <b id="idx">0</b> / <span id="total">0</span> 题</span>
+  <span id="timer">0.0s</span>
+</header>
+
+<main id="main" class="hidden">
+  <iframe id="doc" title="文档"></iframe>
+  <aside>
+    <h2>任务</h2>
+    <p id="q"></p>
+    <p id="hint">在左侧文档里找到答案，填进下面的输入框。按 <kbd>Enter</kbd> 提交。</p>
+    <input id="answer" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="答案…">
+    <div class="row">
+      <button id="submit">提交</button>
+      <button id="skip" class="ghost">不会，跳过</button>
+    </div>
+    <div id="progress">计时从题目出现开始。</div>
+  </aside>
+</main>
+
+<section id="intro">
+  <h1>定位任务·人因测试</h1>
+  <p>同一个问题，两种阅读条件：<b>原始 markdown 纯文本</b> 与 <b>渲染后的单文件 HTML</b>。要测的是「多久能找到」，不是「读得多快」。</p>
+  <ol>
+    <li>共 <b id="n1">16</b> 题，两种条件交替进行；每题都会把文档滚回顶部。</li>
+    <li>答案都很短（数字或组件名）。找到后填进输入框，按 Enter 或点提交。</li>
+    <li>找不到就点「跳过」——这个数据同样有用，别硬猜。</li>
+    <li>不要用浏览器的 Ctrl+F。<b>这一条是整个实验的前提</b>，破了数据就废了。</li>
+  </ol>
+  <div class="note">
+    现在开始就别再切窗口、别查资料。做完会生成一份 JSON，请保存到 <code>test/human/results/</code> 下。
+  </div>
+  <div class="row"><button id="start">开始</button></div>
+</section>
+
+<section id="done">
+  <h1>做完了</h1>
+  <p id="summary"></p>
+  <div class="row">
+    <button id="download">下载结果 JSON</button>
+    <button id="copy" class="ghost">复制结果 JSON</button>
+  </div>
+  <table id="tbl"><thead><tr><th>#</th><th>条件</th><th>题</th><th class="num">秒</th><th>结果</th></tr></thead><tbody></tbody></table>
+  <p style="font-size:12px;color:#667085">把 JSON 放进 <code>test/human/results/</code>，然后运行 <code>npm run human:analyze</code>。</p>
+</section>
+
+<script>
+const TASKS = /*__TASKS__*/[];
+const CONFIG = /*__CONFIG__*/{};
+
+// 固定种子洗牌：同一批题库每次生成同样顺序，实验可复现
+function rng(seed) {
+  let s = seed >>> 0;
+  return () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296;
+}
+function shuffle(list, rand) {
+  const a = list.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const norm = s => String(s).toLowerCase()
+  .replace(/[\s\u3000]+/g, '')
+  .replace(/[，。、；：！？,.;:!?"'`（）()\[\]【】]/g, '');
+
+const rand = rng(CONFIG.seed);
+const plan = [];
+for (const cond of CONFIG.conditions) {
+  for (const t of shuffle(TASKS, rand)) plan.push({ cond, task: t });
+}
+
+const $ = id => document.getElementById(id);
+const state = { i: 0, t0: 0, rows: [], started: false };
+
+$('n1').textContent = String(plan.length);
+$('total').textContent = String(plan.length);
+
+function setCondition(cond) {
+  const frame = $('doc');
+  frame.src = 'doc-' + cond + '.html';
+  $('cond').textContent = cond === 'md' ? 'MARKDOWN 纯文本' : 'HTML 阅读面';
+}
+
+function startTrial() {
+  const item = plan[state.i];
+  if (!item) return finish();
+  $('idx').textContent = String(state.i + 1);
+  $('q').textContent = item.task.q;
+  $('answer').value = '';
+  setCondition(item.cond);
+
+  const begin = () => {
+    // 每题都把文档滚回顶部：衡量定位，不衡量"上次读到哪"
+    try {
+      const d = $('doc').contentWindow;
+      d.scrollTo(0, 0);
+      if (d.document && d.document.documentElement) d.document.documentElement.scrollTop = 0;
+    } catch (e) { /* 跨源时读不到，忽略 */ }
+    $('answer').focus();
+    state.t0 = performance.now();
+    tick();
+  };
+  // 等 iframe 加载完再开始计时，避免把加载时间算进去
+  const frame = $('doc');
+  frame.onload = () => requestAnimationFrame(() => requestAnimationFrame(begin));
+}
+
+let ticking = false;
+function tick() {
+  if (!state.t0) return;
+  $('timer').textContent = ((performance.now() - state.t0) / 1000).toFixed(1) + 's';
+  requestAnimationFrame(tick);
+}
+
+function record(text, skipped) {
+  const item = plan[state.i];
+  const ms = Math.round(performance.now() - state.t0);
+  const n = norm(text);
+  const hit = !skipped && item.task.accept.some(a => n.includes(norm(a)));
+  state.rows.push({
+    i: state.i + 1, condition: item.cond, taskId: item.task.id,
+    question: item.task.q, answer: skipped ? '' : text,
+    ms, correct: hit, skipped: !!skipped,
+  });
+  state.t0 = 0;
+  state.i++;
+  startTrial();
+}
+
+function submit() {
+  const v = $('answer').value.trim();
+  if (!v) return;
+  record(v, false);
+}
+
+function finish() {
+  state.t0 = 0;
+  $('main').classList.add('hidden');
+  $('intro').classList.add('hidden');
+  $('done').style.display = 'block';
+  const by = c => state.rows.filter(r => r.condition === c);
+  const med = xs => {
+    if (!xs.length) return 0;
+    const s = xs.slice().sort((a, b) => a - b);
+    const m = Math.floor(s.length / 2);
+    return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+  };
+  const md = by('md'), html = by('html');
+  $('summary').textContent =
+    'MD 中位 ' + (med(md.filter(r => !r.skipped).map(r => r.ms)) / 1000).toFixed(1) + 's，' +
+    'HTML 中位 ' + (med(html.filter(r => !r.skipped).map(r => r.ms)) / 1000).toFixed(1) + 's；' +
+    '正确率 MD ' + md.filter(r => r.correct).length + '/' + md.length + '，' +
+    'HTML ' + html.filter(r => r.correct).length + '/' + html.length + '。';
+  const tb = $('tbl').querySelector('tbody');
+  for (const r of state.rows) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + r.i + '</td><td>' + r.condition + '</td><td>' + r.taskId +
+      '</td><td class="num">' + (r.ms / 1000).toFixed(1) + '</td><td>' +
+      (r.skipped ? '跳过' : r.correct ? '✓' : '✗ ' + r.answer) + '</td>';
+    tb.appendChild(tr);
+  }
+  window.__result = payload();
+}
+
+function payload() {
+  return {
+    version: 1,
+    seed: CONFIG.seed,
+    startedAt: state.startedAt || null,
+    finishedAt: new Date().toISOString(),
+    viewport: { w: innerWidth, h: innerHeight },
+    userAgent: navigator.userAgent,
+    rows: state.rows,
+  };
+}
+
+$('start').addEventListener('click', () => {
+  state.startedAt = new Date().toISOString();
+  $('intro').classList.add('hidden');
+  $('main').classList.remove('hidden');
+  startTrial();
+});
+$('submit').addEventListener('click', submit);
+$('skip').addEventListener('click', () => record('', true));
+$('answer').addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+$('download').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(window.__result, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'human-results.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+$('copy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(JSON.stringify(window.__result, null, 2)); $('copy').textContent = '已复制'; }
+  catch { $('copy').textContent = '复制失败，请用下载'; }
+  setTimeout(() => { $('copy').textContent = '复制结果 JSON'; }, 1500);
+});
+</script>
+</body>
+</html>
