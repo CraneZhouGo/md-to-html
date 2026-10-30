@@ -10,6 +10,7 @@ import { join } from 'node:path';
 import { renderFile } from '../src/render.mjs';
 import { renderMarkdown, splitFrontMatter } from '../src/markdown.mjs';
 import { escapeHtml } from '../src/template.mjs';
+import { highlight } from '../src/highlight.mjs';
 
 const FIXTURE = new URL('../.scratch/html-vs-md/research.md', import.meta.url).pathname
   .replace(/^\/([A-Za-z]:)/, '$1');
@@ -92,6 +93,16 @@ try {
   ok('非数值列不误判', (h2.match(/class="num"/g) || []).length === 9 &&
     /<td class="num">16,180<\/td>/.test(h2) && !/<td class="num">HTML 更适合 LLM<\/td>/.test(h2),
     String((h2.match(/class="num"/g) || []).length));
+  // 语法高亮：有 token 分类、转义安全、配色不含写死的十六进制
+  ok('js 代码块有高亮 token', /class="tok-kw">const<\/span>/.test(h2));
+  const inj = highlight('const s = "<script>alert(1)</script>";', 'js');
+  ok('高亮后仍正确转义（不注入标签）',
+    !/<(?!\/?span)/.test(inj.html) && /&lt;script&gt;/.test(inj.html));
+  ok('未知语言退回纯文本', highlight('<b>x</b>', 'unknown-lang').highlighted === false);
+  ok('sql 关键字大小写都能识别',
+    /tok-kw">select</.test(highlight('select 1', 'sql').html));
+  ok('高亮色板由强调色推导（无写死十六进制）',
+    /--tok-kw:var\(--accent\)/.test(html) && !/--tok-kw:#/.test(html));
   ok('代码块带语言标记', /data-lang="js"/.test(h2));
   ok('不泄漏内部 data-col 属性', !/data-col=/.test(h2));
   ok('front-matter 进入 doc-info', /文档类型/.test(h2) && /组件自检/.test(h2));

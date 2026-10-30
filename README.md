@@ -37,7 +37,9 @@ node src/cli.mjs doc.md --out out --embed
 
 只改 `--accent` 与 `--accent-soft` 两个变量，其余视觉不动——这是 ADR-0005 划的 token 层边界。
 
-代码块底色、边框、行内代码底色都由 `color-mix(in srgb, var(--accent) …)` 推导，所以换强调色时它们一起变；不存在写死的黑色代码块。
+代码块底色、边框、行内代码底色，以及**语法高亮整套色板**（`--tok-kw` / `--tok-str` / `--tok-num` / `--tok-com` / `--tok-fn` / `--tok-var` / `--tok-punct`）都由 `color-mix(in srgb, var(--accent) …)` 推导，所以换强调色时它们一起变；不存在写死的黑色代码块，也不引入第三方高亮主题。
+
+高亮支持 `js/ts/json/python/bash/html/css/sql`，未知语言退回纯文本转义——**高亮失败绝不能变成内容丢失**。
 
 ## 产物长什么样
 
@@ -57,7 +59,7 @@ node src/cli.mjs doc.md --out out --embed
 | `> 提示：…` / `> 注意：…` / `> 危险：…` | note / warning / danger 提示块 | ADR-0006 P3 |
 | `> 其他引用` | 普通引用块（**不**改造成提示块） | ADR-0006：不确定就不画 |
 | 表格 | 横向滚动容器；数值列（≥70% 单元格可解析为数）右对齐 + 等宽数字 | ADR-0006 P0 |
-| 代码块 | 底色由强调色推导（`color-mix`）+ 语言标签 + 复制按钮 | ADR-0004 |
+| 代码块 | 底色由强调色推导（`color-mix`）+ 轻量语法高亮 + 语言标签 + 复制按钮 | ADR-0004 / 0007 |
 | front-matter | 页眉胶囊标签 + 文档信息卡 | 模板 |
 
 front-matter 支持的键：`title` `category` `status` `updated` `version` `type` `strength` `conclusion` `lead` `description`。
@@ -87,12 +89,12 @@ npm test
 | `src/template.mjs` | 外壳：CSS、内联 JS（搜索/主题/复制/滚动定位/进度） |
 | `src/profile.mjs` | 个性化白名单与 CSS 变量生成 |
 | `src/index-md.mjs` | `index.md` 生成（与渲染同源，不解析 HTML） |
+| `src/highlight.mjs` | 轻量语法高亮：固定关键字表 + 单遍扫描，颜色由强调色推导 |
 
 决策依据全部在 `docs/adr/`：0001 真源与阅读面 · 0002 单文件与静态导航 · 0003/0006 不改内容与确定性图形化 · 0004/0007 视觉契约 · 0005 个性化边界。
 
 ## 还没做
 
 - 表格 → 对比卡片（≤4 列时），以及列表 → 步骤流 / 定义卡片（ADR-0006 P0–P2 的图形化部分）
-- 代码语法高亮
 - `--embed` 尚未用真实图片验证
 - 人因测试（ADR-0003 的自我失效条款要求它在渲染器可用后做）

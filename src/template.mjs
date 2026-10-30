@@ -14,6 +14,14 @@ const CSS = String.raw`
   --code-bg:color-mix(in srgb, var(--accent) 7%, #ffffff);
   --code-border:color-mix(in srgb, var(--accent) 26%, var(--border));
   --code-text:var(--text); --success:#16805d; --warning:#a15c07;
+  /* 语法高亮色板：全部由强调色 + 前景色推导，换强调色即整套跟着变 */
+  --tok-kw:var(--accent);
+  --tok-str:color-mix(in srgb, var(--accent) 45%, var(--text));
+  --tok-num:color-mix(in srgb, var(--accent) 70%, var(--text));
+  --tok-com:var(--muted);
+  --tok-fn:color-mix(in srgb, var(--accent) 28%, var(--text));
+  --tok-var:color-mix(in srgb, var(--accent) 60%, var(--text));
+  --tok-punct:color-mix(in srgb, var(--text) 68%, transparent);
   --danger:#b42318; --shadow:0 8px 28px rgba(16,24,40,.05);
   --sidebar:252px; --toc:220px; --content:800px;
   --body-size:16px; --body-lh:1.78;
@@ -136,6 +144,13 @@ pre[data-lang]:not([data-lang=""])::before{content:attr(data-lang);position:abso
   font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 pre[data-lang]:not([data-lang=""]) code{display:block;margin-top:16px}
 pre code{padding:0;background:transparent;color:inherit;font-size:inherit;overflow-wrap:normal}
+.tok-kw{color:var(--tok-kw);font-weight:600}
+.tok-str{color:var(--tok-str)}
+.tok-num{color:var(--tok-num)}
+.tok-com{color:var(--tok-com);font-style:italic}
+.tok-fn{color:var(--tok-fn)}
+.tok-var{color:var(--tok-var)}
+.tok-punct{color:var(--tok-punct)}
 .copy-code{position:absolute;right:9px;top:9px;padding:4px 8px;
   border:1px solid var(--code-border);border-radius:6px;
   background:color-mix(in srgb, var(--surface) 78%, transparent);color:var(--text);font-size:11px}

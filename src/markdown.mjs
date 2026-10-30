@@ -1,5 +1,6 @@
 // markdown -> HTML 片段。此处只做"呈现层"改造，不改写任何文字（ADR-0003/0006）。
 import MarkdownIt from 'markdown-it';
+import { highlight } from './highlight.mjs';
 
 const CALLOUT_KINDS = [
   { kind: 'danger', re: /^(危险|严重|禁止|danger)/ },
@@ -38,6 +39,11 @@ export function splitFrontMatter(src) {
  * @param {string} markdown
  * @returns {Parsed}
  */
+/** 语言别名归一，只用于 class 名 */
+function aliasOf(lang) {
+  return String(lang || '').toLowerCase();
+}
+
 export function renderMarkdown(markdown) {
   const seen = new Map();
   /** @type {Heading[]} */
@@ -129,14 +135,14 @@ export function renderMarkdown(markdown) {
     }
   });
 
-  // 代码块：语言标签 + 复制按钮（高亮留给后续，不在此处臆造颜色）
-  const fence = md.renderer.rules.fence;
-  md.renderer.rules.fence = (tokens, idx, options, env, self) => {
+  // 代码块：语言标签 + 轻量高亮 + 复制按钮。高亮颜色由强调色推导，不引入第三方主题。
+  md.renderer.rules.fence = (tokens, idx) => {
     const token = tokens[idx];
     const lang = (token.info || '').trim().split(/\s+/)[0] || '';
-    const html = fence(tokens, idx, options, env, self);
-    return html.replace('<pre>', `<pre data-lang="${md.utils.escapeHtml(lang)}">`)
-      .replace('</pre>', '</pre>');
+    const { html, highlighted } = highlight(token.content, lang);
+    const cls = highlighted ? ` class="language-${md.utils.escapeHtml(aliasOf(lang))}"` : '';
+    return `<pre data-lang="${md.utils.escapeHtml(lang)}"><code${cls}>${html}</code></pre>
+`;
   };
 
   return { html: md.render(markdown), headings };
