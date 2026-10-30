@@ -3,10 +3,11 @@
 // 2) 产物零网络依赖（无 <link>、无 @font-face、无外链 script）
 // 3) 目录与导航是静态写入的（不依赖 JS 生成）
 // 4) 图形化不得吞掉文字：正文里的每个标题文本都必须出现在产物里
-import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises';
+import { readFile, writeFile, mkdtemp, mkdir, copyFile, rm, readdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { renderFile } from '../src/render.mjs';
 import { renderMarkdown, splitFrontMatter } from '../src/markdown.mjs';
 import { escapeHtml } from '../src/template.mjs';
@@ -54,7 +55,15 @@ try {
     navHrefs.length === firstGroup.length &&
     navHrefs.every(h => firstGroup.includes(h.replace('href="#', '').replace('"', ''))),
     `${navHrefs.length} vs ${firstGroup.length}`);
-  ok('同源 .md 出口存在', /href="research\.md"/.test(html));
+  // 真源只有一份：输出目录不留 .md 副本，页顶「原始 .md」出口指回真源
+  const copies = (await readdir(join(dir, 'a'))).filter(f => f.toLowerCase().endsWith('.md'));
+  ok('输出目录不复制 .md 副本', copies.length === 0, copies.join(', '));
+  const srcHref = (/href="([^"]+)" title="查看原始 Markdown"/.exec(html) || [])[1] || '';
+  const target = srcHref.startsWith('file:')
+    ? fileURLToPath(srcHref)
+    : resolve(join(dir, 'a'), decodeURIComponent(srcHref));
+  ok('「原始 .md」出口指向真源',
+    resolve(target).toLowerCase() === resolve(FIXTURE).toLowerCase(), srcHref);
   // 双重偏移回归：scroll-padding 与 scroll-margin 相加会让跳转落点偏一格，
   // 高亮随即判给上一节（点下面、弹回上面）
   // 强调色可自定义：色板 + 自定义取色 + 恢复默认，且只存本机（不写进文件）
@@ -229,6 +238,23 @@ try {
   });
   ok('产物含 md-source 元信息', /name="md-source" content="research\.md"/.test(
     await readFile(profileOut.outHtml, 'utf8')));
+
+  // 在原目录就地渲染（不传 --out）：出口就是旁边的同名 .md，目录里不多出东西
+  const inPlace = join(dir, 'inplace');
+  await mkdir(inPlace, { recursive: true });
+  await copyFile(FIXTURE, join(inPlace, 'research.md'));
+  const inPlaceOut = await renderFile(join(inPlace, 'research.md'));
+  ok('就地渲染时出口是同名 .md',
+    /href="research\.md" title="查看原始 Markdown"/.test(await readFile(inPlaceOut.outHtml, 'utf8')));
+  const inPlaceFiles = (await readdir(inPlace)).sort().join(',');
+  ok('就地渲染不产生额外文件', inPlaceFiles === 'research.html,research.md', inPlaceFiles);
+
+  // --with-source：显式要求才复制真源，此时出口改为旁边那份副本
+  const withSrc = join(dir, 'withsrc');
+  const w = await renderFile(FIXTURE, { outDir: withSrc, withSource: true });
+  ok('--with-source 复制原始 .md', (await readdir(withSrc)).includes('research.md'));
+  ok('--with-source 时出口指向副本',
+    /href="research\.md" title="查看原始 Markdown"/.test(await readFile(w.outHtml, 'utf8')));
 
   await rm(dir, { recursive: true, force: true });
 } catch (err) {

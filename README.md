@@ -9,6 +9,9 @@
 ```bash
 npm install
 
+# 全局安装：把 md2html 放到 PATH 上（之后任何目录都能用）
+npm link
+
 # 渲染 examples/ 下的全部示例（输出到 out/examples/，并生成索引）
 npm run render:examples
 
@@ -25,7 +28,14 @@ node src/cli.mjs doc.md --out out --profile me.json
 node src/cli.mjs doc.md --out out --embed
 #   · 同一张图多处引用会全部替换
 #   · 外链图片、缺失文件、未知扩展名都保留原链接并给出提示（宁可留坏链接，也不吞作者的内容）
+
+# 把原始 .md 一并复制到输出目录（默认不复制）
+node src/cli.mjs doc.md --out out --with-source
 ```
+
+`--with-source` 是为**转发**准备的：默认输出目录里只有 HTML，顶栏「原始 .md」用相对路径指回你本机那份真源；制品一旦转到别人机器上，这个链接就是死链。加上它，真源副本落在 HTML 旁边，链接改指副本，收件人也能拿到原始稿。同一份 `.md` 因此只有在你显式要求时才变成两份。
+
+配套的 agent skill 装在 `~/.agents/skills/md-to-html/`（全局，不进仓库）：它靠 `npm link` 出来的 `md2html` 调本渲染器，所以那层 symlink 断了 skill 也跟着失效（`npm link` 重跑一次即可）。
 
 `me.json` 只接受这几个键，未知键会被忽略：
 
@@ -52,7 +62,8 @@ node src/cli.mjs doc.md --out out --embed
 - 右栏分组是静态写入 DOM 的（无 JS、Ctrl+F 时内容仍在），JS 只切换显示哪一组。
 - **目录与导航在构建期静态写入 HTML**：无 JS、被 agent 抓取、Ctrl+F 时都还在。
 - 单文件自包含：CSS 与 JS 内联，零网络请求、零网络字体（系统字体栈）。
-- **没有打印样式**。需要纸面稿就拿同目录下那份 `.md`——它才是真源。
+- 输出目录里默认只有 HTML：原始 `.md` 留在真源位置，顶栏出口用相对路径指回去；要连 `.md` 一起转发才加 `--with-source`。
+- **没有打印样式**。需要纸面稿就拿真源那份 `.md`——它才是真源。
 - 超过 2MB 只告警，不自动切分（切分会毁掉"单文件可转发"）。
 
 ## markdown 元素映射
@@ -148,7 +159,7 @@ out/                 渲染产物（git 忽略，可随时用 npm run render:exa
 | 文件 | 职责 |
 | --- | --- |
 | `src/cli.mjs` | 参数、批量、索引 |
-| `src/render.mjs` | 编排：解析 → 静态目录 → 套模板 → 写 HTML + 同源 `.md` |
+| `src/render.mjs` | 编排：解析 → 静态目录 → 套模板 → 写 HTML（「原始 .md」出口指回真源，输出目录不留副本） |
 | `src/markdown.mjs` | markdown-it 配置与全部映射规则（唯一需要改的地方） |
 | `src/template.mjs` | 外壳：CSS、内联 JS（搜索/主题/复制/滚动定位/进度） |
 | `src/profile.mjs` | 个性化白名单与 CSS 变量生成 |
@@ -169,7 +180,7 @@ out/                 渲染产物（git 忽略，可随时用 npm run render:exa
 ## 项目状态（2026-10-30 收尾）
 
 - **21 个提交**，全部在本地，未连远程。
-- **138 项断言**（`npm test`：不变量 105 + 真实文档回归 33）。
+- **143 项断言**（`npm test`：不变量 110 + 真实文档回归 33）。
 - **三份真实示例**：Java 架构（表格型）· Redis 面试（ASCII 图型）· 图型速查（语料型）。
 - **能力**：单文件 HTML 阅读面、构建期静态导航与目录、内嵌搜索、明暗主题、页面内自定义强调色、轻量语法高亮、表格→卡片/条形、列表→定义卡片/步骤流、ASCII 图→SVG、mermaid 子集六图、用例图扩展、`--profile` 个性化、`index.md` 索引。
 - **人因实验已结束**：两轮 N=1，结论是"读得更快"未获证实（第一轮的 35% 是练习效应）。装置与数据留档在 `test/human/`，不再重跑。

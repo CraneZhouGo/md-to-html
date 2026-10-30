@@ -456,7 +456,7 @@ const JS = String.raw`
  *   meta:{category?:string,status?:string,updated?:string,version?:string,
  *         type?:string,strength?:string,conclusion?:string,lead?:string,sourceMd?:string},
  *   navHtml:string, tocHtml:string, bodyHtml:string,
- *   profileCss?:string, theme?:string, badge?:string|null, sourceName:string
+ *   profileCss?:string, theme?:string, badge?:string|null, sourceName:string, sourceHref:string
  * }} p
  */
 export function renderPage(p) {
@@ -513,7 +513,7 @@ try{
     <input class="search" id="search" type="search" placeholder="查找本页内容…" aria-label="查找本页内容">
     <button class="icon-btn tone-btn" id="toneBtn" aria-label="自定义强调色" title="自定义强调色" aria-expanded="false"><span class="tone-dot"></span></button>
     <button class="icon-btn" id="themeBtn" aria-label="切换明暗主题" title="切换明暗主题">◐</button>
-    <a class="icon-btn" href="${escapeHtml(p.sourceName)}" title="查看原始 Markdown">↓ 原始 .md</a>
+    <a class="icon-btn" href="${escapeHtml(p.sourceHref)}" title="查看原始 Markdown">↓ 原始 .md</a>
   </div>
   <div class="tone-menu" id="toneMenu" hidden>
     <p class="tone-title">强调色</p>

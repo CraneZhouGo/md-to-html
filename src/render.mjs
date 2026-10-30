@@ -1,6 +1,6 @@
-// 渲染编排：markdown -> 静态目录 -> 单文件 HTML + 同源 .md 出口
+// 渲染编排：markdown -> 静态目录 -> 单文件 HTML（页顶“原始 .md”出口直指真源）
 import { readFile, writeFile, mkdir, stat, copyFile } from 'node:fs/promises';
-import { basename, dirname, join, resolve, extname, isAbsolute } from 'node:path';
+import { basename, dirname, join, resolve, relative, extname, isAbsolute } from 'node:path';
 import { renderMarkdown, splitFrontMatter } from './markdown.mjs';
 import { renderPage, escapeHtml } from './template.mjs';
 import { normalizeProfile, profileCss } from './profile.mjs';
@@ -45,8 +45,20 @@ export async function inlineImages(html, baseDir) {
 }
 
 /**
+ * 页顶「原始 .md」的 href。真源只有一份，输出目录里不放副本：
+ * 同一目录时是同名文件，跨目录时退回相对路径，跨盘时退回 file:// URL。
+ */
+function sourceHref(fromDir, abs) {
+  const rel = relative(fromDir, abs);
+  const enc = p => p.split('/').map(encodeURIComponent).join('/');
+  if (!rel) return enc(basename(abs));
+  if (isAbsolute(rel)) return 'file:///' + enc(abs.replace(/\\/g, '/'));
+  return enc(rel.replace(/\\/g, '/'));
+}
+
+/**
  * @param {string} inputPath
- * @param {{outDir?:string, profilePath?:string, embed?:boolean}} [opts]
+ * @param {{outDir?:string, profilePath?:string, embed?:boolean, withSource?:boolean}} [opts]
  */
 export async function renderFile(inputPath, opts = {}) {
   const abs = resolve(inputPath);
@@ -107,7 +119,11 @@ ${subs.map(s =>
   const outDir = resolve(opts.outDir || dirname(abs));
   await mkdir(outDir, { recursive: true });
   const outHtml = join(outDir, basename(abs, extname(abs)) + '.html');
-  const outMd = join(outDir, basename(abs, extname(abs)) + '.md');
+  // 真源默认不复制（同一份 .md 只能有一处）；--with-source 是显式开关，
+  // 为的是把制品转发出去时，收件人也能打开原始稿。
+  const outMd = join(outDir, basename(abs));
+  const withSource = Boolean(opts.withSource) && resolve(outMd) !== abs;
+  if (withSource) await copyFile(abs, outMd);
 
   const page = renderPage({
     title,
@@ -121,13 +137,14 @@ ${subs.map(s =>
     profileCss: profileCss(profile),
     theme: profile.theme,
     badge: profile.readerName ? `个性化副本 · ${profile.readerName}` : null,
-    sourceName: basename(outMd),
+    sourceName: basename(abs),
+    sourceHref: withSource ? encodeURIComponent(basename(abs)) : sourceHref(outDir, abs),
   });
 
   await writeFile(outHtml, page, 'utf8');
-  if (resolve(outMd) !== abs) await copyFile(abs, outMd);
 
   const size = (await stat(outHtml)).size;
-  return { outHtml, outMd, size, warn: size > SIZE_WARN, chapters: chapters.length,
+  return { outHtml, source: abs, withSource: withSource ? outMd : null,
+           size, warn: size > SIZE_WARN, chapters: chapters.length,
            title, category: fm.category, updated: fm.updated, visual, embed: embedInfo };
 }

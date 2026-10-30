@@ -7,12 +7,13 @@ import { writeIndex } from './index-md.mjs';
 
 function parseArgs(argv) {
   const files = [];
-  const opts = { outDir: undefined, profilePath: undefined, embed: false, index: true };
+  const opts = { outDir: undefined, profilePath: undefined, embed: false, index: true, withSource: false };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--out' || a === '-o') opts.outDir = argv[++i];
     else if (a === '--profile' || a === '-p') opts.profilePath = argv[++i];
     else if (a === '--embed') opts.embed = true;
+    else if (a === '--with-source') opts.withSource = true;
     else if (a === '--index') opts.index = true;
     else if (a === '--no-index') opts.index = false;
     else if (a === '--help' || a === '-h') { printHelp(); process.exit(0); }
@@ -32,6 +33,7 @@ function printHelp() {
   -o, --out <dir>      输出目录（默认与源文件同目录）
   -p, --profile <json> 个性化配置（只覆盖 token 层，见 docs/adr/0005）
       --embed          把相对路径的图片内联成 data URI
+      --with-source    把原始 .md 一并复制到输出目录（转发时也能打开原始稿）
       --no-index       不生成 index.md（默认会生成，见 ADR-0002）
   -h, --help           显示帮助
 
@@ -81,6 +83,7 @@ for (const f of files) {
       .filter(Boolean).join(' · ');
     console.log(`✓ ${f} → ${r.outHtml}  (${kb} KB, ${r.chapters} 章${shape ? ', ' + shape : ''})`);
     if (r.warn) console.warn(`  ! 制品超过 2MB（${kb} KB）。ADR-0002：只告警，不自动切分。`);
+    if (r.withSource) console.log(`    已一并复制原始 .md`);
     if (r.embed) {
       const e = r.embed;
       if (e.inlined.length) console.log(`    内联图片 ${e.inlined.length} 张`);
