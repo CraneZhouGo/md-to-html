@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "把写给 AI 的长篇 markdown 渲染成一个 HTML 文件：能一口气读完，也能直接发给别人",
+  "description": "把 markdown 渲染成一个 HTML 文件：为长文阅读排版，能一口气读完，也能直接发给别人",
   "license": "MIT",
   "author": "crane <1030784773@qq.com>",
   "bin": {
