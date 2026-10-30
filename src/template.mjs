@@ -189,6 +189,18 @@ figure.diagram svg.dg{display:block;max-width:100%;height:auto;margin:0 auto}
   font-family:"Cascadia Mono","SFMono-Regular",Menlo,Consolas,"Microsoft YaHei",monospace}
 .dg-edge{fill:none;stroke:color-mix(in srgb, var(--accent) 45%, var(--border));stroke-width:1.25}
 .dg-head{fill:color-mix(in srgb, var(--accent) 60%, var(--text))}
+.dg-head-open{fill:none;stroke:color-mix(in srgb, var(--accent) 60%, var(--text));stroke-width:1.4}
+.dg-round,.dg-terminal{fill:color-mix(in srgb, var(--accent) 4%, var(--surface))}
+.dg-diamond{fill:color-mix(in srgb, var(--accent) 10%, var(--surface))}
+.dg-dash{stroke-dasharray:5 4}
+.dg-lifeline{stroke:color-mix(in srgb, var(--accent) 30%, var(--border));stroke-width:1;stroke-dasharray:4 5}
+.dg-label{fill:var(--text);font-size:11px;stroke:var(--surface);stroke-width:3.5;paint-order:stroke}
+.dg-attr{fill:var(--muted);font-size:11px;
+  font-family:"Cascadia Mono","SFMono-Regular",Menlo,Consolas,"Microsoft YaHei",monospace}
+.dg-rule{stroke:color-mix(in srgb, var(--accent) 25%, var(--border));stroke-width:1}
+.dg-dot{fill:color-mix(in srgb, var(--accent) 70%, var(--text))}
+.dg-dot-ring{fill:none;stroke:color-mix(in srgb, var(--accent) 70%, var(--text));stroke-width:1.2}
+.dg-rel{stroke-width:1.4}
 figure.diagram[data-kind="svg"]{padding:6px 0}
 pre[data-lang]:not([data-lang=""])::before{content:attr(data-lang);position:absolute;top:9px;left:14px;
   font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}

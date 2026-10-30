@@ -3,6 +3,7 @@ import MarkdownIt from 'markdown-it';
 import { highlight } from './highlight.mjs';
 import { installVisualize } from './visualize.mjs';
 import { parseLayered, renderLayeredSvg } from './diagrams/layered.mjs';
+import { renderMermaid } from './diagrams/mermaid.mjs';
 
 const CALLOUT_KINDS = [
   { kind: 'danger', re: /^(危险|严重|禁止|danger)/ },
@@ -200,6 +201,15 @@ export function renderMarkdown(markdown, env = {}) {
     const pre = `<pre data-lang="${md.utils.escapeHtml(lang)}"><code${cls}>${html}</code></pre>
 `;
     // 架构图：先试画成 SVG（文字仍是 <text>，可搜可选中）；画不出来再退回文本图示
+    // mermaid 子集：解析成功就画成 SVG；失败就原样当代码块（绝不画错）
+    if (/^mermaid$/i.test(lang)) {
+      const r = renderMermaid(token.content);
+      if (r) return `<figure class="diagram" data-kind="svg" data-diagram="${r.type}">${r.svg}</figure>
+`;
+      return `<pre data-lang="mermaid"><code>${md.utils.escapeHtml(token.content)}</code></pre>
+`;
+    }
+
     if (looksLikeDiagram(token.content, lang)) {
       const graph = parseLayered(token.content);
       if (graph) {

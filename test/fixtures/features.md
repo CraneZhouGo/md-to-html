@@ -177,3 +177,52 @@ GitLab
 登录请求 → 实例 1，登录成功
 后续请求 → 实例 8，找不到 Session
 ```
+
+## mermaid：流程图
+
+```mermaid
+flowchart TD
+  A[用户请求] --> B[Nginx]
+  B --> C[实例 1]
+  B --> D[实例 2]
+  C --> E[(Redis)]
+  D --> E
+```
+
+## mermaid：时序图
+
+```mermaid
+sequenceDiagram
+  participant U as 用户
+  participant S as 服务
+  U->>S: 登录请求
+  S-->>U: Token
+```
+
+## mermaid：状态机
+
+```mermaid
+stateDiagram-v2
+  [*] --> Idle
+  Idle --> Running: 开始
+  Running --> [*]: 完成
+```
+
+## mermaid：ER 图
+
+```mermaid
+erDiagram
+  USER ||--o{ ORDER : places
+  USER {
+    string name
+    string email
+  }
+```
+
+## mermaid：不支持的语法要原样退回代码块
+
+```mermaid
+sequenceDiagram
+  Note over A: 这一段还不支持
+  A->>B: x
+```
