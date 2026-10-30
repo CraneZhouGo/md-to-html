@@ -7,24 +7,41 @@ import { normalizeProfile, profileCss } from './profile.mjs';
 
 const SIZE_WARN = 2 * 1024 * 1024; // ADR-0002：超过 2MB 告警，不自动切分
 
-/** @param {string} text @param {string} baseDir */
+const MIME = {
+  png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif',
+  webp: 'image/webp', avif: 'image/avif', svg: 'image/svg+xml', ico: 'image/x-icon',
+};
+
+/**
+ * 把相对路径的图片内联成 data URI。
+ * 规则：外链与已是 data URI 的跳过；未知扩展名跳过（宁可留原链接，也不内联成打不开的图）；
+ * 同一张图被引用多次时全部替换，不是只换第一处。
+ * @param {string} html
+ * @param {string} baseDir
+ * @returns {Promise<{html:string, inlined:string[], skipped:{src:string,reason:string}[]}>}
+ */
 export async function inlineImages(html, baseDir) {
-  const matches = [...html.matchAll(/<img\s[^>]*src="([^"]+)"/g)];
+  const srcs = [...new Set([...html.matchAll(/<img\b[^>]*?\bsrc="([^"]+)"/g)].map(m => m[1]))];
   let out = html;
-  for (const m of matches) {
-    const src = m[1];
-    if (/^(https?:|data:)/i.test(src)) continue; // 外链图片不内联（ADR-0007：不引入网络依赖的默认选择）
+  const inlined = [];
+  const skipped = [];
+
+  for (const src of srcs) {
+    if (/^(https?:|data:)/i.test(src)) { skipped.push({ src, reason: 'external' }); continue; }
     const file = isAbsolute(src) ? src : resolve(baseDir, src);
+    const ext = extname(file).slice(1).toLowerCase();
+    const mime = MIME[ext];
+    if (!mime) { skipped.push({ src, reason: `unsupported:${ext || 'none'}` }); continue; }
     try {
       const buf = await readFile(file);
-      const ext = extname(file).slice(1).toLowerCase() || 'png';
-      const mime = ext === 'svg' ? 'image/svg+xml' : ext === 'jpg' ? 'image/jpeg' : `image/${ext}`;
-      out = out.replace(`src="${src}"`, `src="data:${mime};base64,${buf.toString('base64')}"`);
+      const dataUri = `data:${mime};base64,${buf.toString('base64')}`;
+      out = out.split(`src="${src}"`).join(`src="${dataUri}"`);
+      inlined.push(src);
     } catch {
-      // 找不到就保持原样：宁可留一个坏链接，也不静默删掉作者的内容
+      skipped.push({ src, reason: 'not-found' });
     }
   }
-  return out;
+  return { html: out, inlined, skipped };
 }
 
 /**
@@ -47,7 +64,12 @@ export async function renderFile(inputPath, opts = {}) {
     bodyHtml = bodyHtml.replace(/<h1 id="[^"]*">[\s\S]*?<\/h1>\s*/, '');
   }
 
-  if (opts.embed) bodyHtml = await inlineImages(bodyHtml, dirname(abs));
+  let embedInfo = null;
+  if (opts.embed) {
+    const r = await inlineImages(bodyHtml, dirname(abs));
+    bodyHtml = r.html;
+    embedInfo = { inlined: r.inlined, skipped: r.skipped };
+  }
 
   // 左栏 = 章节（h2）全文档导航；右栏 = 当前章的小节（h3）。两者不重叠。
   const chapters = headings.filter(h => h.level === 2);
@@ -107,5 +129,5 @@ ${subs.map(s =>
 
   const size = (await stat(outHtml)).size;
   return { outHtml, outMd, size, warn: size > SIZE_WARN, chapters: chapters.length,
-           title, category: fm.category, updated: fm.updated, visual };
+           title, category: fm.category, updated: fm.updated, visual, embed: embedInfo };
 }

@@ -59,6 +59,16 @@ for (const f of files) {
       .filter(Boolean).join(' · ');
     console.log(`✓ ${f} → ${r.outHtml}  (${kb} KB, ${r.chapters} 章${shape ? ', ' + shape : ''})`);
     if (r.warn) console.warn(`  ! 制品超过 2MB（${kb} KB）。ADR-0002：只告警，不自动切分。`);
+    if (r.embed) {
+      const e = r.embed;
+      if (e.inlined.length) console.log(`    内联图片 ${e.inlined.length} 张`);
+      for (const s of e.skipped) {
+        const why = s.reason === 'external' ? '外链，按设计不内联'
+          : s.reason === 'not-found' ? '文件不存在，保留原链接'
+          : `不支持的格式（${s.reason.split(':')[1]}），保留原链接`;
+        console.warn(`    ! ${s.src}：${why}`);
+      }
+    }
 
     rendered.push({
       name: basename(f, extname(f)),
