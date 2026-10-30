@@ -133,6 +133,14 @@ tr:last-child td{border-bottom:0}
 td:last-child,th:last-child{border-right:0}
 tr:nth-child(even) td{background:color-mix(in srgb,var(--surface) 55%,var(--bg))}
 td.num,th.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+/* 数值列条形：贴在单元格底部，文字仍在上层，可选中可搜索 */
+td.bar{background-image:linear-gradient(to right,
+  color-mix(in srgb, var(--accent) 52%, transparent) 0 var(--w, 0%),
+  transparent var(--w, 0%));
+  background-repeat:no-repeat;background-size:100% 4px;background-position:0 100%}
+tr:nth-child(even) td.bar{background-image:linear-gradient(to right,
+  color-mix(in srgb, var(--accent) 52%, transparent) 0 var(--w, 0%),
+  transparent var(--w, 0%)),none;background-color:color-mix(in srgb,var(--surface) 55%,var(--bg))}
 .cmp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:18px 0 24px}
 .cmp-card{border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:14px 16px}
 .cmp-key{margin:0 0 10px;font-size:14px;font-weight:700;overflow-wrap:anywhere}

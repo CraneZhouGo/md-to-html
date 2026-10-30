@@ -122,7 +122,16 @@ export function renderMarkdown(markdown, env = {}) {
       }
 
       const isNum = (/** @type {string} */ x) =>
-        /^[-+−]?[\d][\d.,\s]*(%|\u00d7|x|\u500d)?$/u.test(x) && /\d/u.test(x);
+        /^[-+]?[\d][\d.,\s]*(%|\u00d7|x|\u500d)?$/u.test(x) && /\d/u.test(x);
+
+      // 只有「纯数字（可含千分位）」才参与条形图；带 % / × / 倍的列只右对齐，不画条
+      const toNumber = (/** @type {string} */ x) => {
+        if (!isNum(x)) return null;
+        const clean = x.replace(/[,\uFF0C\s]/g, '');
+        if (!/^[-+]?\d+(?:\.\d+)?$/.test(clean)) return null;
+        const n = Number(clean);
+        return Number.isFinite(n) ? n : null;
+      };
 
       for (const [c, texts] of byCol) {
         if (!texts.length) continue;
@@ -132,6 +141,32 @@ export function renderMarkdown(markdown, env = {}) {
         for (const [tokenIdx, tc] of colOf) {
           if (tc === c) t[tokenIdx].attrJoin('class', 'num');
         }
+
+        // 条形图：只在该列 100% 可解析、≥3 行、无负数、且有真实差异时画
+        const values = texts.map(toNumber);
+        if (values.some(v => v === null)) continue;          // 有百分比/单位混排就不画
+        if (values.length < 3) continue;
+        if (values.some(v => v < 0)) continue;               // 负数需要零基线，本实现不做
+        const max = Math.max(...values);
+        const min = Math.min(...values);
+        if (max <= 0) continue;
+        if (min > 0 && max / min < 1.2) continue;            // 差别太小，画出来是平的
+
+        // 序号列（1,2,3 / 2020,2021,2022）画条没有意义：等差且步长为 1 时跳过
+        const steps = values.slice(1).map((v, k) => v - values[k]);
+        if (steps.length && steps.every(d => d === 1 || d === -1)) continue;
+
+        // 逐行贴百分比；按行序对齐 texts
+        const rowOrder = [...colOf.entries()]
+          .filter(([, tc]) => tc === c)
+          .map(([tokenIdx]) => tokenIdx);
+        rowOrder.forEach((tokenIdx, k) => {
+          const value = values[k];
+          if (value === null) return;
+          const pct = Math.max(2, Math.round(value / max * 100));
+          t[tokenIdx].attrJoin('class', 'bar');
+          t[tokenIdx].attrSet('style', `--w:${pct}%`);
+        });
       }
     }
   });

@@ -31,6 +31,11 @@ function readTable(t, start, end) {
 
 /** 表格 -> 对比卡片：列数 ≤4、行数 ≤8、所有单元格 ≤40 字 */
 function tableToCards(state, i, end) {
+  // 有可画条形图的数值列时保留表格：条形比卡片更能承载横向对比（同为 ADR-0006 P0）
+  for (let k = i; k < end; k++) {
+    const cls = state.tokens[k].attrGet && state.tokens[k].attrGet('class');
+    if (cls && /(^|\s)bar(\s|$)/.test(cls)) return null;
+  }
   const { headText, headRaw, rows } = readTable(state.tokens, i, end);
   if (!headText.length || !rows.length) return null;
   if (headText.length > 4 || rows.length > 8) return null;
