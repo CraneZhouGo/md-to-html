@@ -49,9 +49,7 @@ seed:3cca957497784020 · 模式 read · 掷骰指定：自选列表第 7 条
 
 ## 文件
 
-- `.scratch/reading-surface/templates/a-timetable.html`
-- `.scratch/reading-surface/templates/b-manual.html`
-- `.scratch/reading-surface/templates/c-cutting-bench.html`
+（三份稿子已随 `templates/` 一并删除，需要时用 `git show 242cbf9:templates/<文件名>` 取回。）
 
 三份都用同一份真实内容（`.scratch/html-vs-md/research.md` 的第 3 节），可直接双击对比。
 
