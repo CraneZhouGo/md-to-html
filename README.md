@@ -58,6 +58,16 @@ node src/cli.mjs doc.md --out out --with-source
 
 ## 产物长什么样
 
+| 白天 | 夜间 |
+| --- | --- |
+| ![白天：静态章节导航 + 正文 + 本页目录](docs/assets/reading-surface.png) | ![夜间](docs/assets/reading-surface-dark.png) |
+
+左栏章节导航、右栏本页目录、顶栏搜索与明暗切换都是构建期写进 HTML 的，不靠 JS 现算。
+
+图示（`mermaid` 子集与 ASCII 图）在构建期就是静态 SVG：零运行时、零 Canvas，文字仍可被 Ctrl+F 搜到、被 agent 选中：
+
+![用例图与排期图](docs/assets/diagrams.png)
+
 - 三列布局：**左栏 = 章节导航（`h2`，全文档）/ 右栏 = 当前章的小节（`h3`）**，两者不重复；顶栏含搜索、明暗切换、"原始 .md"出口。
 - 右栏分组是静态写入 DOM 的（无 JS、Ctrl+F 时内容仍在），JS 只切换显示哪一组。
 - **目录与导航在构建期静态写入 HTML**：无 JS、被 agent 抓取、Ctrl+F 时都还在。
@@ -151,6 +161,8 @@ src/                 渲染器
 test/                守门测试 + 自检样本 + 人因测试装置
   human/             定位任务实验（题库、计时台、分析脚本）
 docs/adr/            十条架构决策
+docs/assets/         README 截图（由 out/ 渲染产物截下，非手绘）
+.github/workflows/   CI：Node 18/20/22 矩阵跑 npm test
 out/                 渲染产物（git 忽略，可随时用 npm run render:examples 重建）
 ```
 
