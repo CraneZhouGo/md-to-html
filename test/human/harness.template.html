@@ -68,7 +68,7 @@ kbd{border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:11p
   <h1>定位任务·人因测试</h1>
   <p>同一个问题，两种阅读条件：<b>原始 markdown 纯文本</b> 与 <b>渲染后的单文件 HTML</b>。要测的是「多久能找到」，不是「读得多快」。</p>
   <ol>
-    <li>共 <b id="n1">16</b> 题，两种条件交替进行；每题都会把文档滚回顶部。</li>
+    <li>共 <b id="n1">16</b> 题，两种条件<b>交替出现</b>（避免先做的那批更慢污染结果）；每题都会把文档滚回顶部。</li>
     <li>答案都很短（数字或组件名）。找到后填进输入框，按 Enter 或点提交。</li>
     <li>找不到就点「跳过」——这个数据同样有用，别硬猜。</li>
     <li>不要用浏览器的 Ctrl+F。<b>这一条是整个实验的前提</b>，破了数据就废了。</li>
@@ -113,9 +113,18 @@ const norm = s => String(s).toLowerCase()
   .replace(/[，。、；：！？,.;:!?"'`（）()\[\]【】]/g, '');
 
 const rand = rng(CONFIG.seed);
+// 关键：条件必须与时间解耦。不能「先把 MD 全跑完再跑 HTML」——
+// 那样学习效应全被记到后一个条件头上（第一轮就栽在这）。
+// 做法：两个条件各自洗牌，然后交替编排，起点随机。
+const buckets = CONFIG.conditions.map(cond => ({ cond, tasks: shuffle(TASKS, rand) }));
 const plan = [];
-for (const cond of CONFIG.conditions) {
-  for (const t of shuffle(TASKS, rand)) plan.push({ cond, task: t });
+const startAt = Math.floor(rand() * buckets.length);
+for (let k = 0; k < TASKS.length; k++) {
+  for (let b = 0; b < buckets.length; b++) {
+    const bucket = buckets[(startAt + b) % buckets.length];
+    const task = bucket.tasks[k];
+    if (task) plan.push({ cond: bucket.cond, task });
+  }
 }
 
 const $ = id => document.getElementById(id);

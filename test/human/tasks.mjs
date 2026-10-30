@@ -48,7 +48,9 @@ export const TASKS = [
   },
   {
     id: 'registry',
-    q: 'K8s 发布链路里，镜像仓库的组件叫什么？',
+    // 第一轮这条题面有歧义：文档里「Docker镜像」与「Harbor」相邻，两种条件都答成了 docker。
+    // 改成「推送到哪个组件」，指向唯一答案。
+    q: 'K8s 发布链路里，构建好的镜像推送到哪个组件？',
     accept: ['Harbor'],
     where: '§15 推荐的务实落地方案',
   },
