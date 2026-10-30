@@ -181,6 +181,15 @@ figure.diagram pre code{font-family:"Cascadia Mono","SFMono-Regular",Menlo,Conso
 figure.diagram pre[data-lang]::before{display:none}
 figure.diagram pre[data-lang] code{margin-top:0}
 figure.diagram pre code{color:var(--text)}
+/* 内联 SVG 图示：颜色全部来自变量，跟随强调色与明暗主题 */
+figure.diagram svg.dg{display:block;max-width:100%;height:auto;margin:0 auto}
+.dg-box{fill:color-mix(in srgb, var(--accent) 7%, var(--surface));
+  stroke:color-mix(in srgb, var(--accent) 30%, var(--border));stroke-width:1.25}
+.dg-text{fill:var(--text);font-size:13px;
+  font-family:"Cascadia Mono","SFMono-Regular",Menlo,Consolas,"Microsoft YaHei",monospace}
+.dg-edge{fill:none;stroke:color-mix(in srgb, var(--accent) 45%, var(--border));stroke-width:1.25}
+.dg-head{fill:color-mix(in srgb, var(--accent) 60%, var(--text))}
+figure.diagram[data-kind="svg"]{padding:6px 0}
 pre[data-lang]:not([data-lang=""])::before{content:attr(data-lang);position:absolute;top:9px;left:14px;
   font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 pre[data-lang]:not([data-lang=""]) code{display:block;margin-top:16px}

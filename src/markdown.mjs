@@ -2,6 +2,7 @@
 import MarkdownIt from 'markdown-it';
 import { highlight } from './highlight.mjs';
 import { installVisualize } from './visualize.mjs';
+import { parseLayered, renderLayeredSvg } from './diagrams/layered.mjs';
 
 const CALLOUT_KINDS = [
   { kind: 'danger', re: /^(危险|严重|禁止|danger)/ },
@@ -198,8 +199,14 @@ export function renderMarkdown(markdown, env = {}) {
     const cls = highlighted ? ` class="language-${md.utils.escapeHtml(aliasOf(lang))}"` : '';
     const pre = `<pre data-lang="${md.utils.escapeHtml(lang)}"><code${cls}>${html}</code></pre>
 `;
-    // 架构图：保留文字，只换成"图示"排版（行高收紧，竖线才接得上）
+    // 架构图：先试画成 SVG（文字仍是 <text>，可搜可选中）；画不出来再退回文本图示
     if (looksLikeDiagram(token.content, lang)) {
+      const graph = parseLayered(token.content);
+      if (graph) {
+        const { svg } = renderLayeredSvg(graph);
+        return `<figure class="diagram" data-kind="svg">${svg}</figure>
+`;
+      }
       return `<figure class="diagram" data-kind="ascii">${pre}</figure>
 `;
     }

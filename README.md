@@ -66,7 +66,7 @@ node src/cli.mjs doc.md --out out --embed
 | `- 术语：定义` 列表 | **定义卡片**（每一项都形如"术语：定义"，术语 ≤18 字，无嵌套） | ADR-0006 P1 |
 | 有序列表（3–8 项） | **步骤流**：自动去掉「1、」「（1）」等重复编号；过半项含「如果/或者/可以选择」等可选措辞则不转 | ADR-0006 P2 |
 | 代码块 | 底色由强调色推导（`color-mix`）+ 轻量语法高亮 + 语言标签 + 复制按钮 | ADR-0004 / 0007 |
-| ASCII 架构图（```` ```text ```` + 制表符/箭头） | 包成 `<figure class="diagram">`，按"图"排版：行高 1.16、淡强调色底、隐藏语言标签。**文字仍是文字**，可搜可复制 | ADR-0006 / 0007 |
+| ASCII 架构图（```` ```text ```` + 制表符/箭头） | **画成内联 SVG**（竖向分层 / 树形 / 单行链 / 续行链四种写法）；识别不了的退回文本图示（行高 1.16、淡强调色底）。SVG 里文字仍是 `<text>`，可搜可选中 | ADR-0008 |
 | front-matter | 页眉胶囊标签 + 文档信息卡 | 模板 |
 
 front-matter 兼容 Obsidian 的 `date created` / `date modified`（带空格的键会归一为 `date-modified` 并映射到 `updated`）。
@@ -115,6 +115,7 @@ npm test
 | `src/highlight.mjs` | 轻量语法高亮：固定关键字表 + 单遍扫描，颜色由强调色推导 |
 | `src/visualize.mjs` | 确定性图形化：表格→卡片、列表→定义卡片/步骤流、注释开关 |
 | `src/highlight.mjs` 里的 `looksLikeDiagram` | ASCII 架构图识别（仅 text/plain 块，靠制表符与箭头） |
+| `src/diagrams/layered.mjs` | 四种 ASCII 写法 → 内联 SVG；布局确定性、朝向自动选、边多时走总线 |
 
 决策依据全部在 `docs/adr/`：0001 真源与阅读面 · 0002 单文件与静态导航 · 0003/0006 不改内容与确定性图形化 · 0004/0007 视觉契约 · 0005 个性化边界。
 
