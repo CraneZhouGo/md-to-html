@@ -1,0 +1,13 @@
+# 依赖
+node_modules/
+
+# 渲染产物（可随时重建，真源是 .md）
+out/
+
+# 设计工具的本机状态
+.impeccable/
+
+# 杂项
+*.log
+.DS_Store
+Thumbs.db
