@@ -25,9 +25,15 @@ export function splitFrontMatter(src) {
   /** @type {Record<string,string>} */
   const meta = {};
   for (const line of m[1].split(/\r?\n/)) {
-    const kv = /^([A-Za-z_][\w-]*)\s*:\s*(.*)$/.exec(line.trim());
-    if (kv) meta[kv[1]] = kv[2].replace(/^["']|["']$/g, '').trim();
+    // 允许带空格的键：Obsidian 会写 `date created:` / `date modified:`
+    const kv = /^([A-Za-z_][\w-]*(?:\s+[A-Za-z_][\w-]*)*)\s*:\s*(.*)$/.exec(line.trim());
+    if (!kv) continue;
+    const key = kv[1].trim().toLowerCase().replace(/\s+/g, '-');
+    meta[key] = kv[2].replace(/^["']|["']$/g, '').trim();
   }
+  // 常见别名归一（Obsidian / 其他工具的字段名）
+  if (meta['date-modified'] && !meta.updated) meta.updated = meta['date-modified'];
+  if (meta['date-created'] && !meta.created) meta.created = meta['date-created'];
   return { meta, body: src.slice(m[0].length) };
 }
 

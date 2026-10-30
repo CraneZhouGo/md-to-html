@@ -60,15 +60,17 @@ node src/cli.mjs doc.md --out out --embed
 | `## / ### 标题` | H2 / H3 + 确定性锚点 + 静态目录项 | ADR-0002 |
 | `> 提示：…` / `> 注意：…` / `> 危险：…` | note / warning / danger 提示块 | ADR-0006 P3 |
 | `> 其他引用` | 普通引用块（**不**改造成提示块） | ADR-0006：不确定就不画 |
-| 表格（严格条件内） | **对比卡片**：列 ≤4、行 ≤8、单元格 ≤40 字 | ADR-0006 P0 |
+| 表格（仅两列时） | **对比卡片**：行 ≤12、单元格 ≤60 字。三列以上一律保留表格 | ADR-0006 P0 |
 | 表格（其他情况） | 横向滚动容器；数值列（≥70% 单元格可解析为数）右对齐 + 等宽数字 | ADR-0006 P0 |
 | 数值列（纯数字、≥3 行、无负数、差别 ≥1.2×、非序号列） | 单元格底部**条形图**，按列内最大值归一，数字原文照旧 | ADR-0006 P0 |
 | `- 术语：定义` 列表 | **定义卡片**（每一项都形如"术语：定义"，术语 ≤18 字，无嵌套） | ADR-0006 P1 |
-| 有序列表（3–8 项） | **步骤流**（每项 ≤100 字，无嵌套、无代码块） | ADR-0006 P2 |
+| 有序列表（3–8 项） | **步骤流**：自动去掉「1、」「（1）」等重复编号；过半项含「如果/或者/可以选择」等可选措辞则不转 | ADR-0006 P2 |
 | 代码块 | 底色由强调色推导（`color-mix`）+ 轻量语法高亮 + 语言标签 + 复制按钮 | ADR-0004 / 0007 |
 | front-matter | 页眉胶囊标签 + 文档信息卡 | 模板 |
 
-front-matter 支持的键：`title` `category` `status` `updated` `version` `type` `strength` `conclusion` `lead` `description` `visual`（`off` 关闭全篇图形化）。
+front-matter 兼容 Obsidian 的 `date created` / `date modified`（带空格的键会归一为 `date-modified` 并映射到 `updated`）。
+
+支持的键：`title` `category` `status` `updated` `version` `type` `strength` `conclusion` `lead` `description` `visual`（`off` 关闭全篇图形化）。
 
 ### 图形化的开关（写在 markdown 里）
 

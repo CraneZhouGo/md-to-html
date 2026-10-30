@@ -29,7 +29,11 @@ function readTable(t, start, end) {
   return { headText, headRaw, rows };
 }
 
-/** 表格 -> 对比卡片：列数 ≤4、行数 ≤8、所有单元格 ≤40 字 */
+/**
+ * 表格 -> 卡片：只做「键 -> 属性」型，即 **正好 2 列**。
+ * 3 列以上一律保留表格——真实文档里的 3/4 列表几乎都是对比矩阵
+ * （Jenkins vs GitLab、1 台×10 Pod vs 10 台×1 Pod），卡片会把横向对比打散成纵排。
+ */
 function tableToCards(state, i, end) {
   // 有可画条形图的数值列时保留表格：条形比卡片更能承载横向对比（同为 ADR-0006 P0）
   for (let k = i; k < end; k++) {
@@ -38,9 +42,10 @@ function tableToCards(state, i, end) {
   }
   const { headText, headRaw, rows } = readTable(state.tokens, i, end);
   if (!headText.length || !rows.length) return null;
-  if (headText.length > 4 || rows.length > 8) return null;
+  if (headText.length !== 2) return null;        // 只转两列表：键 -> 属性
+  if (rows.length > 12) return null;             // 两列可以稍长，超过 12 行仍保留表格
   const cells = rows.flatMap(r => r.text).concat(headText);
-  if (cells.some(c => len(c) > 40)) return null;
+  if (cells.some(c => len(c) > 60)) return null; // 两列表允许更长的说明文字
 
   const md = state.md;
   const cards = rows.map(r => {
@@ -86,9 +91,18 @@ function listToSteps(state, i, end) {
   if (!items || items.length < 3 || items.length > 8) return null;
   if (items.some(it => it.nested || it.code)) return null;
   if (items.some(it => len(it.content) > 100)) return null;
+  // 读起来是「可选项」而不是「先后步骤」：条件式/可选式措辞过半就不转步骤流
+  const optional = items.filter(it => /如果|若|当.+时|或者|可以选择|可以选用|也可以/.test(it.content)).length;
+  if (optional * 2 >= items.length) return null;
   const md = state.md;
+  // 真源里常写成「1、xxx」「（1）xxx」「第一步：xxx」，它们与步骤流自带的编号重复，先去掉
+  const stripEnum = t => {
+    const stripped = t.replace(
+      /^\s*(?:\(?\d+\)?[、.．)）:：]|（\d+）|第[一二三四五六七八九十]+步[:：]?)\s*/, '');
+    return stripped.trim() ? stripped : t;
+  };
   const rows = items.map((it, k) =>
-    `<li><span class="step-n">${k + 1}</span><div class="step-b">${md.renderInline(it.content)}</div></li>`);
+    `<li><span class="step-n">${k + 1}</span><div class="step-b">${md.renderInline(stripEnum(it.content))}</div></li>`);
   return `\n<ol class="steps">\n${rows.join('\n')}\n</ol>\n`;
 }
 
