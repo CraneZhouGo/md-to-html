@@ -1,0 +1,98 @@
+# md-to-html
+
+把写给 AI 的长篇 markdown，变成**能一口气读完、能直接发给别人**的单文件 HTML。
+
+真源永远是 markdown；HTML 是随时可丢弃重建的阅读面。同一份内容保留两种表示：HTML 给人读，`.md` 给 agent 读。
+
+## 用法
+
+```bash
+npm install
+
+# 渲染单个文件，输出到 out/
+node src/cli.mjs .scratch/html-vs-md/research.md --out out
+
+# 批量 + 生成索引
+node src/cli.mjs docs/*.md --out out --index
+
+# 个性化（只覆盖 token 层）
+node src/cli.mjs doc.md --out out --profile me.json
+
+# 把相对路径图片内联成 data URI（默认外链）
+node src/cli.mjs doc.md --out out --embed
+```
+
+`me.json` 只接受这几个键，未知键会被忽略：
+
+```json
+{ "accent": "#0b6bcb", "content": "820px", "fontSize": "17px",
+  "lineHeight": "1.8", "readerName": "张三", "theme": "dark" }
+```
+
+带 `readerName` 时，产物页眉会出现一枚"个性化副本"标记——这是唯一会写进文件的个人身份信息。
+
+### 页面内自定义强调色
+
+顶栏的色点按钮可以当场换强调色：6 个预设（靛蓝/工程蓝/青/绿/紫/琥珀）+ 任意取色 + 恢复默认。选择只存在本机 `localStorage`（键 `md2h-accent`），**不写进产物**；换台电脑用 `--profile` 烘进去，或再点一次。
+
+只改 `--accent` 与 `--accent-soft` 两个变量，其余视觉不动——这是 ADR-0005 划的 token 层边界。
+
+代码块底色、边框、行内代码底色都由 `color-mix(in srgb, var(--accent) …)` 推导，所以换强调色时它们一起变；不存在写死的黑色代码块。
+
+## 产物长什么样
+
+- 三列布局：**左栏 = 章节导航（`h2`，全文档）/ 右栏 = 当前章的小节（`h3`）**，两者不重复；顶栏含搜索、明暗切换、"原始 .md"出口。
+- 右栏分组是静态写入 DOM 的（无 JS、Ctrl+F 时内容仍在），JS 只切换显示哪一组。
+- **目录与导航在构建期静态写入 HTML**：无 JS、被 agent 抓取、Ctrl+F 时都还在。
+- 单文件自包含：CSS 与 JS 内联，零网络请求、零网络字体（系统字体栈）。
+- **没有打印样式**。需要纸面稿就拿同目录下那份 `.md`——它才是真源。
+- 超过 2MB 只告警，不自动切分（切分会毁掉"单文件可转发"）。
+
+## markdown 元素映射
+
+| markdown | 渲染成 | 依据 |
+| --- | --- | --- |
+| `# 标题` | 页面 H1（正文里不重复出现） | 模板 |
+| `## / ### 标题` | H2 / H3 + 确定性锚点 + 静态目录项 | ADR-0002 |
+| `> 提示：…` / `> 注意：…` / `> 危险：…` | note / warning / danger 提示块 | ADR-0006 P3 |
+| `> 其他引用` | 普通引用块（**不**改造成提示块） | ADR-0006：不确定就不画 |
+| 表格 | 横向滚动容器；数值列（≥70% 单元格可解析为数）右对齐 + 等宽数字 | ADR-0006 P0 |
+| 代码块 | 底色由强调色推导（`color-mix`）+ 语言标签 + 复制按钮 | ADR-0004 |
+| front-matter | 页眉胶囊标签 + 文档信息卡 | 模板 |
+
+front-matter 支持的键：`title` `category` `status` `updated` `version` `type` `strength` `conclusion` `lead` `description`。
+
+## 不变量（有测试守着）
+
+```bash
+npm test
+```
+
+- 同一真源 + 无偏好 ⇒ **逐字节相同**的输出
+- 产物零网络依赖：无 `<link>`、无 `@font-face`、无外链 `<script>`
+- 无 `@media print`
+- 目录与导航是静态写入的，不靠 JS 生成
+- 图形化不得吞字：正文每个标题文本都必须出现在产物里
+- 左右两栏分工不重复：左栏条目与右栏分组一一对应
+
+> 锚点 id 是中文时，浏览器返回的 `a.hash` 是 percent-encoded 的，必须 `decodeURIComponent` 后再与元素 id 比较——这一条曾经让点击与滚动高亮全部静默失效。
+
+## 代码地图
+
+| 文件 | 职责 |
+| --- | --- |
+| `src/cli.mjs` | 参数、批量、索引 |
+| `src/render.mjs` | 编排：解析 → 静态目录 → 套模板 → 写 HTML + 同源 `.md` |
+| `src/markdown.mjs` | markdown-it 配置与全部映射规则（唯一需要改的地方） |
+| `src/template.mjs` | 外壳：CSS、内联 JS（搜索/主题/复制/滚动定位/进度） |
+| `src/profile.mjs` | 个性化白名单与 CSS 变量生成 |
+| `src/index-md.mjs` | `index.md` 生成（与渲染同源，不解析 HTML） |
+
+决策依据全部在 `docs/adr/`：0001 真源与阅读面 · 0002 单文件与静态导航 · 0003/0006 不改内容与确定性图形化 · 0004/0007 视觉契约 · 0005 个性化边界。
+
+## 还没做
+
+- 表格 → 对比卡片（≤4 列时），以及列表 → 步骤流 / 定义卡片（ADR-0006 P0–P2 的图形化部分）
+- 代码语法高亮
+- `--embed` 尚未用真实图片验证
+- 人因测试（ADR-0003 的自我失效条款要求它在渲染器可用后做）

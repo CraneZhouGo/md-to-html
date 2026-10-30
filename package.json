@@ -1,0 +1,20 @@
+{
+  "name": "md-to-html",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "把写给 AI 的长篇 markdown 变成可分享的单文件 HTML 阅读面",
+  "bin": {
+    "md2html": "src/cli.mjs"
+  },
+  "scripts": {
+    "render": "node src/cli.mjs",
+    "test": "node test/determinism.mjs"
+  },
+  "dependencies": {
+    "markdown-it": "^15.0.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
