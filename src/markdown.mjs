@@ -46,6 +46,19 @@ export function splitFrontMatter(src) {
  * @param {string} markdown
  * @returns {Parsed}
  */
+// ASCII 架构图识别：靠制表符/箭头/树形分支，且只在 text/plain/无语言 的块里判定。
+// 目的不是"转换"，而是换个排版方式——文字必须原样保留（ADR-0006）。
+const DIAGRAM_CHARS = /[─│┌┐└┘├┤┬┴┼═║╔╗╚╝╠╣╦╩╬↓↑→←↔]/;
+
+export function looksLikeDiagram(text, lang) {
+  const l = String(lang || '').toLowerCase();
+  if (!(l === '' || l === 'text' || l === 'plain' || l === 'plaintext' || l === 'txt')) return false;
+  const lines = text.split(/\r?\n/).filter(x => x.trim() !== '');
+  if (lines.length < 2) return false;
+  const hits = lines.filter(x => DIAGRAM_CHARS.test(x)).length;
+  return hits >= 2 || hits / lines.length >= 0.3;
+}
+
 /** 语言别名归一，只用于 class 名 */
 function aliasOf(lang) {
   return String(lang || '').toLowerCase();
@@ -183,8 +196,14 @@ export function renderMarkdown(markdown, env = {}) {
     const lang = (token.info || '').trim().split(/\s+/)[0] || '';
     const { html, highlighted } = highlight(token.content, lang);
     const cls = highlighted ? ` class="language-${md.utils.escapeHtml(aliasOf(lang))}"` : '';
-    return `<pre data-lang="${md.utils.escapeHtml(lang)}"><code${cls}>${html}</code></pre>
+    const pre = `<pre data-lang="${md.utils.escapeHtml(lang)}"><code${cls}>${html}</code></pre>
 `;
+    // 架构图：保留文字，只换成"图示"排版（行高收紧，竖线才接得上）
+    if (looksLikeDiagram(token.content, lang)) {
+      return `<figure class="diagram" data-kind="ascii">${pre}</figure>
+`;
+    }
+    return pre;
   };
 
   const visual = installVisualize(md);   // ADR-0006：确定性图形化

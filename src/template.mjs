@@ -168,6 +168,19 @@ pre{position:relative;overflow:auto;margin:18px 0 24px;padding:19px 20px;
   border:1px solid var(--code-border);
   border-radius:11px;background:var(--code-bg);color:var(--code-text);font-size:13px;
   line-height:1.7;tab-size:2}
+/* ASCII 架构图：按"图"排版，不按"代码"排版。
+   关键是行高——竖线/箭头是逐字符对齐的，行高一大就断成一节一节。 */
+figure.diagram{margin:20px 0 26px}
+figure.diagram pre{line-height:1.16;font-size:12.5px;padding:16px 18px;letter-spacing:0;
+  background:color-mix(in srgb, var(--accent) 4%, var(--surface));
+  border:1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
+  color:var(--text)}
+figure.diagram pre code{font-family:"Cascadia Mono","SFMono-Regular",Menlo,Consolas,
+  "DejaVu Sans Mono","Microsoft YaHei",monospace}
+/* 图示不需要 "TEXT" 这种语言标签（它本来就是文字画的图） */
+figure.diagram pre[data-lang]::before{display:none}
+figure.diagram pre[data-lang] code{margin-top:0}
+figure.diagram pre code{color:var(--text)}
 pre[data-lang]:not([data-lang=""])::before{content:attr(data-lang);position:absolute;top:9px;left:14px;
   font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 pre[data-lang]:not([data-lang=""]) code{display:block;margin-top:16px}
