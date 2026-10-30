@@ -9,6 +9,9 @@
 ```bash
 npm install
 
+# 渲染 examples/ 下的全部示例（输出到 out/examples/，并生成索引）
+npm run render:examples
+
 # 渲染单个文件，输出到 out/
 node src/cli.mjs .scratch/html-vs-md/research.md --out out
 
@@ -103,6 +106,19 @@ npm test
 - 左右两栏分工不重复：左栏条目与右栏分组一一对应
 
 > 锚点 id 是中文时，浏览器返回的 `a.hash` 是 percent-encoded 的，必须 `decodeURIComponent` 后再与元素 id 比较——这一条曾经让点击与滚动高亮全部静默失效。
+
+## 目录
+
+```
+examples/            真实示例文档（渲染器的活体回归集）
+  Java服务架构演进与部署实践总结.md   604 行：10 张表 / 28 个代码块 / 12 张 ASCII 图
+  diagrams.md        图型速查：八种图示各一例 + 一个"不支持"的对照
+templates/           早期视觉方向稿（a–g），保留作设计记录
+src/                 渲染器
+test/                守门测试 + 自检样本与素材
+docs/adr/            十条架构决策
+out/                 渲染产物（git 忽略，可随时重建）
+```
 
 ## 代码地图
 

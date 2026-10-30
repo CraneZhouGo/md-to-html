@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // md2html <files...> [--out DIR] [--profile file.json] [--embed] [--index]
 import { basename, dirname, extname, join, resolve } from 'node:path';
+import { readdir } from 'node:fs/promises';
 import { renderFile } from './render.mjs';
 import { writeIndex } from './index-md.mjs';
 
@@ -40,7 +41,27 @@ function printHelp() {
 `);
 }
 
-const { files, opts } = parseArgs(process.argv.slice(2));
+// Windows 下的 npm/sh 不会展开通配符，这里自己展开 `dir/*.md` 这类简单模式。
+// 只支持「前缀*后缀」一个通配符，不做完整 glob：够用且不会写错正则。
+async function expandGlobs(args) {
+  const out = [];
+  for (const a of args) {
+    if (!a.includes('*')) { out.push(a); continue; }
+    const dir = dirname(a);
+    const pattern = basename(a);
+    const star = pattern.indexOf('*');
+    const head = pattern.slice(0, star);
+    const tail = pattern.slice(star + 1);
+    let names = [];
+    try { names = (await readdir(dir)).sort(); } catch { continue; }
+    for (const n of names) {
+      if (n.startsWith(head) && n.endsWith(tail)) out.push(join(dir, n));
+    }
+  }
+  return out;
+}
+
+const { files, opts } = parseArgs(await expandGlobs(process.argv.slice(2)));
 if (!files.length) { printHelp(); process.exit(1); }
 
 let failed = 0;
