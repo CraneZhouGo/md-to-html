@@ -43,7 +43,8 @@ function parseVertical(lines) {
     const b = BRANCH.exec(line);
     if (b) {
       if (!curHasBranch && cur.length) push();   // 头节点自成一层的父节点
-      cur.push(clean(b[1]));
+      // 允许分支文本以箭头开头：`├──→ Replica1`
+      cur.push(clean(b[1]).replace(/^(?:→|->)\s*/, ''));
       curHasBranch = true;
       continue;
     }
@@ -118,10 +119,11 @@ export function parseLayered(src) {
   const hasBranch = lines.some(l => BRANCH.test(l));
   const hasChain = lines.some(l => CHAIN.test(l));
 
+  // 注意：分支行里也可能带箭头（`├──→ Replica1`），所以"有箭头"不能排除分支写法。
+  // 早先这里写成 `hasVert && !hasChain`，导致 `Master ├──→ R1` 直接落空。
   let layers = null;
-  if (hasVert && !hasChain) layers = parseVertical(lines);
-  else if (!hasVert && !hasChain && hasBranch) layers = parseTree(lines);
-  else if (!hasVert && hasChain) layers = parseChain(lines);
+  if (hasVert || hasBranch) layers = parseVertical(lines) || parseTree(lines);
+  else if (hasChain) layers = parseChain(lines);
   if (!layers) return null;
   return validate(layers);
 }

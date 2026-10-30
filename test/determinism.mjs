@@ -184,18 +184,27 @@ try {
   ok('mermaid SVG 内无外链与脚本',
     [...h2.matchAll(/data-diagram="[^"]+">(<svg[\s\S]*?<\/svg>)/g)].every(m => !/href=|xlink|script/i.test(m[1])));
 
+  // 新增两种 ASCII 形状（第二份真实文档暴露出来的）
+  ok('分支带箭头（Master ├──→ Replica）',
+    /<text class="dg-text"[^>]*>Replica1<\/text>/.test(h2) &&
+    (h2.match(/data-diagram="layered"/g) || []).length >= 3);
+  ok('多行映射（A → B）画成映射图',
+    /data-diagram="mapping"/.test(h2) && /增加 Replica/.test(h2));
+  ok('散文式箭头块保持普通代码块（不进图示）',
+    /<pre data-lang="text"><code>Redis 为了避免单点/.test(h2));
+
   // 图示 -> SVG（文字仍是 <text>，可搜可选中）
   const svgFigs = (h2.match(/data-kind="svg"/g) || []).length;
   ok('四种写法都画成 SVG', svgFigs >= 4, String(svgFigs));
   ok('SVG 里的文字是真文本节点',
     /<text class="dg-text"[^>]*>Nginx<\/text>/.test(h2) && /<text class="dg-text"[^>]*>Harbor<\/text>/.test(h2));
   ok('识别不了的一律退回文本图示',
-    /data-kind="ascii"/.test(h2) && /登录请求 → 实例 1/.test(h2));
+    /data-kind="ascii"/.test(h2) && /Redis Session/.test(h2));
   ok('SVG 不含外链与脚本', !/<svg[^>]*(href|script)/i.test(h2.match(/<svg[\s\S]*?<\/svg>/)?.[0] || ''));
   ok('图示宽度不超过正文列', [...h2.matchAll(/<svg class="dg"[^>]*width="(\d+)"/g)]
     .every(m => Number(m[1]) <= 820));
   ok('ASCII 架构图包成 figure.diagram',
-    /<figure class="diagram" data-kind="ascii"><pre[^>]*>/.test(h2));
+    (h2.match(/<figure class="diagram" data-kind="ascii">/g) || []).length >= 1);
   ok('图示文字原样保留', /Nginx \/ 负载均衡器/.test(h2) && /单体实例 N/.test(h2));
   ok('命令行文本不会被误判成图示',
     !/class="diagram"[^>]*>(?:(?!<\/figure>)[\s\S]){0,400}npm install/.test(h2));

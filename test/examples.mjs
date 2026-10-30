@@ -20,16 +20,24 @@ const count = (hay, re) => (hay.match(re) || []).length;
 // 期望清单：这是"这批文档应该长什么样"的记录。文档改了、图型退化了，这里会报。
 const EXPECT = {
   'diagrams.md': {
-    diagrams: { flow: 2, sequence: 1, state: 1, er: 1, class: 1, usecase: 1, gantt: 1 },
-    asciiSvg: 1,          // ASCII 架构图转成 SVG 的数量
+    diagrams: { flow: 2, sequence: 1, state: 1, er: 1, class: 1, usecase: 1, gantt: 1, layered: 1 },
+    asciiFigure: 0,       // 退回"文本图示"的块数
     fallbacks: 1,         // 故意不支持的 mermaid（Note）退回代码块
     mustContain: ['用户请求', '待支付', '需求评审', '上架商品'],
   },
   'Java服务架构演进与部署实践总结.md': {
-    minDiagrams: 8,       // SVG 图至少这么多
-    minTables: 4,         // 保留为表格的至少这么多
-    minCards: 4,          // 卡片化的表格至少这么多
+    diagrams: { layered: 9, mapping: 1 },
+    asciiFigure: 2,
+    minTables: 4,
+    minCards: 4,
     mustContain: ['Nginx', 'Kubernetes', 'Redis Session'],
+  },
+  // 第二份真实文档：文风完全不同（表格几乎没有，131 个 text 代码块）
+  'Redis集群与高可用_Java高级开发面试复习.md': {
+    diagrams: { layered: 19, mapping: 9 },
+    asciiFigure: 1,
+    minTables: 1,
+    mustContain: ['Sentinel', 'Hash Slot', '16384', 'quorum'],
   },
 };
 
@@ -71,9 +79,9 @@ try {
       const got = figs.filter(a => a.includes(`data-diagram="${type}"`)).length;
       ok(`${name}：${type} 图 × ${n}`, got === n, `实际 ${got}`);
     }
-    if (exp.asciiSvg !== undefined) {
-      const asciiSvg = svgFigs.filter(a => !/data-diagram=/.test(a)).length;
-      ok(`${name}：ASCII 图转 SVG × ${exp.asciiSvg}`, asciiSvg === exp.asciiSvg, `实际 ${asciiSvg}`);
+    if (exp.asciiFigure !== undefined) {
+      const n = figs.filter(a => /data-kind="ascii"/.test(a)).length;
+      ok(`${name}：退回文本图示 × ${exp.asciiFigure}`, n === exp.asciiFigure, `实际 ${n}`);
     }
     if (exp.fallbacks !== undefined) {
       const fb = count(html, /<pre data-lang="mermaid">/g);

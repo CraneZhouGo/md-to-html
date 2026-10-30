@@ -3,6 +3,8 @@ import MarkdownIt from 'markdown-it';
 import { highlight } from './highlight.mjs';
 import { installVisualize } from './visualize.mjs';
 import { parseLayered, renderLayeredSvg } from './diagrams/layered.mjs';
+import { parseMapping, renderMappingSvg } from './diagrams/mapping.mjs';
+import { textWidth } from './diagrams/svg.mjs';
 import { renderMermaid } from './diagrams/mermaid.mjs';
 
 const CALLOUT_KINDS = [
@@ -258,9 +260,22 @@ ${token.content}` : token.content;
       const graph = parseLayered(token.content);
       if (graph) {
         const { svg } = renderLayeredSvg(graph);
-        return `<figure class="diagram" data-kind="svg">${svg}</figure>
+        return `<figure class="diagram" data-kind="svg" data-diagram="layered">${svg}</figure>
 `;
       }
+      // 多行 A → B 的映射关系（分层解析器会明确拒绝这一类）
+      const mapping = parseMapping(token.content);
+      if (mapping) {
+        const { svg } = renderMappingSvg(mapping);
+        return `<figure class="diagram" data-kind="svg" data-diagram="mapping">${svg}</figure>
+`;
+      }
+      // 画不出来时先判断这块到底是不是"图"：带箭头的中文长句（散文）用图示排版
+      // （行高 1.16、等宽）会很难读，宁可当普通代码块。
+      const NL = String.fromCharCode(10);
+      const bodyLines = token.content.split(NL).map(x => x.trim()).filter(Boolean);
+      const proseLike = bodyLines.some(l => /[。；]/.test(l)) || bodyLines.some(l => textWidth(l) > 46);
+      if (proseLike) return pre;
       return `<figure class="diagram" data-kind="ascii">${pre}</figure>
 `;
     }

@@ -71,7 +71,7 @@ node src/cli.mjs doc.md --out out --embed
 | 代码块 | 底色由强调色推导（`color-mix`）+ 轻量语法高亮 + 语言标签 + 复制按钮 | ADR-0004 / 0007 |
 | ` ```mermaid ` 代码块 | 六种图型的子集：`flowchart` / `sequenceDiagram` / `stateDiagram-v2` / `erDiagram` / `classDiagram` / `gantt` | ADR-0009 / 0010 |
 | ` ```usecase ` 代码块 | 用例图（mermaid 无此语法，本项目扩展）：`actor` / `usecase` / `A --> B` | ADR-0010 |
-| ASCII 架构图（```` ```text ```` + 制表符/箭头） | **画成内联 SVG**（竖向分层 / 树形 / 单行链 / 续行链四种写法）；识别不了的退回文本图示（行高 1.16、淡强调色底）。SVG 里文字仍是 `<text>`，可搜可选中 | ADR-0008 |
+| ASCII 图（```` ```text ```` + 制表符/箭头） | **画成内联 SVG**：竖向分层 / 树形 / 单行链 / 续行链 / **多行映射**（`A → B` 成列）。识别不了退回文本图示；带箭头的中文长句（散文）保持普通代码块 | ADR-0008 |
 | front-matter | 页眉胶囊标签 + 文档信息卡 | 模板 |
 
 front-matter 兼容 Obsidian 的 `date created` / `date modified`（带空格的键会归一为 `date-modified` 并映射到 `updated`）。
@@ -135,6 +135,7 @@ npm run human:analyze                        # 出中位数/正确率/配对比�
 examples/            真实示例文档（渲染器的活体回归集）
   Java服务架构演进与部署实践总结.md   604 行：10 张表 / 28 个代码块 / 12 张 ASCII 图
   diagrams.md        图型速查：八种图示各一例 + 一个"不支持"的对照
+  Redis集群与高可用_Java高级开发面试复习.md   2364 行：另一种文体（几乎无表格、131 个 text 块）
 templates/           早期视觉方向稿（a–g），保留作设计记录
 src/                 渲染器
 test/                守门测试 + 自检样本 + 人因测试装置
