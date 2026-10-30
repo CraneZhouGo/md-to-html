@@ -1,6 +1,7 @@
 // markdown -> HTML 片段。此处只做"呈现层"改造，不改写任何文字（ADR-0003/0006）。
 import MarkdownIt from 'markdown-it';
 import { highlight } from './highlight.mjs';
+import { installVisualize } from './visualize.mjs';
 
 const CALLOUT_KINDS = [
   { kind: 'danger', re: /^(危险|严重|禁止|danger)/ },
@@ -44,7 +45,7 @@ function aliasOf(lang) {
   return String(lang || '').toLowerCase();
 }
 
-export function renderMarkdown(markdown) {
+export function renderMarkdown(markdown, env = {}) {
   const seen = new Map();
   /** @type {Heading[]} */
   const headings = [];
@@ -145,5 +146,7 @@ export function renderMarkdown(markdown) {
 `;
   };
 
-  return { html: md.render(markdown), headings };
+  const visual = installVisualize(md);   // ADR-0006：确定性图形化
+  const html = md.render(markdown, env);
+  return { html, headings, visual };
 }

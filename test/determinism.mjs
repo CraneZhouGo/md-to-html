@@ -93,6 +93,15 @@ try {
   ok('非数值列不误判', (h2.match(/class="num"/g) || []).length === 9 &&
     /<td class="num">16,180<\/td>/.test(h2) && !/<td class="num">HTML 更适合 LLM<\/td>/.test(h2),
     String((h2.match(/class="num"/g) || []).length));
+  // 确定性图形化（ADR-0006）
+  ok('表格 -> 对比卡片', /class="cmp-grid"/.test(h2) && /class="cmp-card"/.test(h2));
+  ok('列表 -> 定义卡片', /<dl class="defs">/.test(h2));
+  ok('有序列表 -> 步骤流', /<ol class="steps">/.test(h2) && /class="step-n"/.test(h2));
+  ok('<!-- md: table --> 可强制保留表格', /<table>/.test(h2));
+  ok('<!-- md: no-visual --> 可关闭图形化',
+    /这一条不应被转成定义卡片/.test(h2) && /class="defs">[\s\S]*恢复/.test(h2.split('这一条不应被转成定义卡片')[1] || ''));
+  ok('图形化后文字仍完整',
+    ['真源', '阅读面', '制品', '解析 markdown', '输出单文件 HTML'].every(t => h2.includes(t)));
   // 语法高亮：有 token 分类、转义安全、配色不含写死的十六进制
   ok('js 代码块有高亮 token', /class="tok-kw">const<\/span>/.test(h2));
   const inj = highlight('const s = "<script>alert(1)</script>";', 'js');

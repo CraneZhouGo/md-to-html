@@ -133,6 +133,26 @@ tr:last-child td{border-bottom:0}
 td:last-child,th:last-child{border-right:0}
 tr:nth-child(even) td{background:color-mix(in srgb,var(--surface) 55%,var(--bg))}
 td.num,th.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.cmp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:18px 0 24px}
+.cmp-card{border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:14px 16px}
+.cmp-key{margin:0 0 10px;font-size:14px;font-weight:700;overflow-wrap:anywhere}
+.cmp-list{margin:0;display:grid;gap:7px}
+.cmp-row{display:flex;gap:10px;align-items:baseline;font-size:13px}
+.cmp-row dt{flex:none;min-width:74px;color:var(--muted);font-size:11px;letter-spacing:.04em}
+.cmp-row dd{margin:0;overflow-wrap:anywhere}
+.cmp-plain{margin:0;font-size:13.5px}
+.defs{margin:18px 0 24px;border-top:1px solid var(--border)}
+.def{display:grid;grid-template-columns:minmax(88px,158px) 1fr;gap:16px;
+  padding:11px 2px;border-bottom:1px solid var(--border)}
+.def dt{font-weight:650;overflow-wrap:anywhere}
+.def dd{margin:0;overflow-wrap:anywhere}
+.steps{list-style:none;padding:0;margin:18px 0 24px}
+.steps li{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)}
+.steps li:last-child{border-bottom:0}
+.step-n{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;
+  background:color-mix(in srgb,var(--accent) 14%,var(--surface));
+  color:var(--accent);font-size:11px;font-weight:700;margin-top:3px}
+.step-b{min-width:0}
 code{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;font-size:.88em;
   padding:.16em .38em;border-radius:5px;
   background:color-mix(in srgb, var(--accent) 9%, var(--surface-2));overflow-wrap:anywhere}

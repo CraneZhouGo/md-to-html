@@ -37,7 +37,7 @@ export async function renderFile(inputPath, opts = {}) {
   const { meta: fm, body } = splitFrontMatter(raw);
 
   // 正文里已有的 H1 作为标题；有 front-matter title 时优先用它
-  const { html, headings } = renderMarkdown(body);
+  const { html, headings, visual } = renderMarkdown(body, { visual: fm.visual || 'on' });
   const firstH1 = headings[0] && headings[0].level === 1 ? headings[0] : null;
   const title = fm.title || (firstH1 ? firstH1.text : basename(abs, extname(abs)));
 
@@ -106,5 +106,6 @@ ${subs.map(s =>
   if (resolve(outMd) !== abs) await copyFile(abs, outMd);
 
   const size = (await stat(outHtml)).size;
-  return { outHtml, outMd, size, warn: size > SIZE_WARN, chapters: chapters.length, title, category: fm.category, updated: fm.updated };
+  return { outHtml, outMd, size, warn: size > SIZE_WARN, chapters: chapters.length,
+           title, category: fm.category, updated: fm.updated, visual };
 }

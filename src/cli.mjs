@@ -54,7 +54,10 @@ for (const f of files) {
   try {
     const r = await renderFile(f, opts);
     const kb = (r.size / 1024).toFixed(1);
-    console.log(`✓ ${f} → ${r.outHtml}  (${kb} KB, ${r.chapters} 章)`);
+    const v = r.visual || {};
+    const shape = [v.cards ? `卡片 ${v.cards}` : '', v.defs ? `定义 ${v.defs}` : '', v.steps ? `步骤 ${v.steps}` : '']
+      .filter(Boolean).join(' · ');
+    console.log(`✓ ${f} → ${r.outHtml}  (${kb} KB, ${r.chapters} 章${shape ? ', ' + shape : ''})`);
     if (r.warn) console.warn(`  ! 制品超过 2MB（${kb} KB）。ADR-0002：只告警，不自动切分。`);
 
     rendered.push({
