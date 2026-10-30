@@ -23,5 +23,10 @@
   },
   "engines": {
     "node": ">=18"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CraneZhouGo/md-to-html.git"
+  },
+  "homepage": "https://github.com/CraneZhouGo/md-to-html#readme"
 }
