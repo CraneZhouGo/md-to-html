@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>E · 图纸 — HTML 会不会取代 Markdown？</title>
+<style>
+:root{
+  --paper:#ffffff; --ink:#101418; --muted:#5f6b7a; --hair:#e2e8f0;
+  --blue:#0b6bcb; --blue-soft:#f2f7fd; --measure:780px;
+}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);background-color:#f7f9fb;
+  background-image:radial-gradient(#cfd8e3 1px,transparent 1px);
+  background-size:26px 26px;
+  font:17px/1.75 -apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  -webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+.caps{letter-spacing:.14em;text-transform:uppercase}
+
+/* drawing header: one hairline of metadata, no box */
+.head{background:var(--paper);border-bottom:1px solid var(--hair)}
+.head .in{max-width:1100px;margin:0 auto;display:flex;gap:26px;align-items:center;
+  padding:16px 30px;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.head b{color:var(--ink);font-weight:500}
+.head .sp{margin-left:auto}
+
+/* the sheet: white, sits on the dotted ground so the grid never touches text */
+.sheet{max-width:1100px;margin:0 auto;background:var(--paper);border-left:1px solid var(--hair);
+  border-right:1px solid var(--hair);padding:48px 30px 0}
+
+.body{display:grid;grid-template-columns:78px var(--measure) 132px;gap:30px;justify-content:center}
+
+h1{font-size:34px;line-height:1.22;margin:0 0 14px;letter-spacing:-.02em;font-weight:650}
+p{margin:0 0 14px}
+.lede{font-size:18.5px;line-height:1.7;color:#3c4653;margin-bottom:30px}
+h2{font-size:22px;line-height:1.35;margin:46px 0 14px;font-weight:630;letter-spacing:-.01em}
+h3{font-size:17.5px;margin:28px 0 8px;font-weight:630}
+b,strong{font-weight:630}
+
+/* dimension annotation in the margin: the section's extent, measured */
+.dim{position:relative;margin-top:46px;height:46px;border-top:1px solid var(--hair);
+  border-bottom:1px solid var(--hair);font-size:9px;color:var(--muted);text-align:center}
+.dim::before,.dim::after{content:"";position:absolute;left:50%;width:1px;height:6px;background:var(--blue)}
+.dim::before{top:-3px}
+.dim::after{bottom:-3px}
+.dim span{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  background:var(--paper);padding:0 3px;line-height:1.3;white-space:nowrap;writing-mode:vertical-rl}
+
+table{width:100%;border-collapse:collapse;font-size:14px;margin:10px 0 22px}
+caption{caption-side:top;text-align:left;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);padding-bottom:9px}
+thead th{text-align:left;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+  font-weight:500;padding:9px 12px 9px 0;border-bottom:1.5px solid var(--blue)}
+td{padding:10px 12px 10px 0;border-bottom:1px solid var(--hair)}
+td.num,th.num{text-align:right;white-space:nowrap;padding-right:0}
+
+/* note: leader line back to the margin, drafting-style */
+.note{background:var(--blue-soft);padding:18px 20px;margin:22px 0;font-size:15px;line-height:1.75;
+  position:relative}
+.note::before{content:"";position:absolute;left:-30px;top:22px;width:30px;height:1px;background:var(--blue)}
+.note::after{content:"";position:absolute;left:-30px;top:19px;width:5px;height:5px;border-radius:50%;
+  background:var(--blue)}
+.note .t{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--blue);display:block;margin-bottom:7px}
+
+/* right margin: running facts, aligned like a legend */
+.legend{font-size:9.5px;line-height:1.8;color:var(--muted);border-top:1px solid var(--hair);padding-top:12px}
+.legend b{display:block;color:var(--ink);font-weight:500;font-size:15px;font-variant-numeric:tabular-nums}
+.legend div{margin-bottom:16px}
+
+/* title block: the drawing's corner stamp */
+.tb{display:grid;grid-template-columns:2fr 1fr 1fr;border:1px solid var(--ink);
+  margin:40px 0 0;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.tb div{padding:9px 12px;border-right:1px solid var(--ink)}
+.tb div:last-child{border-right:0}
+.tb b{display:block;color:var(--ink);font-weight:500;letter-spacing:0;text-transform:none;font-size:11px;margin-top:3px}
+
+.foot{max-width:1100px;margin:0 auto;display:flex;gap:20px;font-size:10px;color:var(--muted);
+  padding:14px 30px 40px}
+.foot .sp{margin-left:auto;color:var(--blue)}
+</style>
+</head>
+<body>
+
+<div class="head">
+  <div class="in mono">
+    <span><b>MTH-0001</b> 研究纪要</span>
+    <span>图 3 / 共 6</span>
+    <span>比例 1:1</span>
+    <span>2026-10-30</span>
+    <span class="sp">HTML 会不会取代 Markdown？</span>
+  </div>
+</div>
+
+<div class="sheet">
+  <div class="body">
+
+    <div class="dim"><span>619 字 · 2 表</span></div>
+
+    <div>
+      <h1>HTML 会不会取代 Markdown？</h1>
+      <p class="lede">这场讨论真实存在，有明确起点、有产品落地，但它的主张范围比传闻窄得多：<b>换掉的是给人的那一层，不是真源</b>。</p>
+
+      <h2>被推翻的三个前提</h2>
+      <p>第一，「用 HTML 替代 MD」确实存在，但只在一层成立。第二个前提——「AI 生成的 markdown 动辄数千行」——没有任何一手信源支持；可考的最大量级是 400 行、1,800 词、5k tokens。第三个前提被最硬的数据直接反驳：「HTML 更适合 LLM」并不成立。</p>
+
+      <table>
+        <caption class="mono">表 3-1 · 三组实证数据（原始出处）</caption>
+        <thead>
+          <tr><th>主张</th><th class="num">数字</th><th>出处</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>同一页 HTML 与 Markdown（agent 读取）</td><td class="num">16,180 → 3,150</td><td>Cloudflare, 2026-02</td></tr>
+          <tr><td>文档站 agent 找路失败（404 / 任务）</td><td class="num">2.23 / 1.42 / 0.11</td><td>Mintlify, 2,400 次</td></tr>
+          <tr><td>模型手写 HTML 相对手写 Markdown</td><td class="num">1.9–2.2×</td><td>Tim Schipper 实测</td></tr>
+        </tbody>
+      </table>
+
+      <p>注意第二行的三个数字：HTML 是 2.23，纯 Markdown 是 1.42，而「Markdown 加一份索引地图」是 0.11。差别不在标记语言，在有没有地图。</p>
+
+      <div class="note">
+        <span class="t mono">原文</span>
+        The most surprising find was that markdown itself wasn't the fix, the map was. Plain markdown was arguably the worst of the four formats.
+      </div>
+
+      <h3>所以真正该优化的是什么</h3>
+      <p>承重的不是格式，是导航。一个没有内嵌目录、没有锚点、没有索引的 HTML，只是更好看的墙；而一份有一张好地图的 Markdown，已经赢过大半。</p>
+    </div>
+
+    <div class="legend">
+      <div><b>6</b>节</div>
+      <div><b>74</b>行表格</div>
+      <div><b>7</b>组数据</div>
+      <div><b>1</b>处引文</div>
+    </div>
+
+  </div>
+
+  <div class="tb mono">
+    <div>文档<b>HTML 会不会取代 Markdown？</b></div>
+    <div>版次<b>B · 2026-10-30</b></div>
+    <div>真源<b>research.md</b></div>
+  </div>
+</div>
+
+<div class="foot mono">
+  <span>第 3 节 / 共 6 节</span>
+  <span class="sp">查看原始 .md</span>
+</div>
+
+</body>
+</html>

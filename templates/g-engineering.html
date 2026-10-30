@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>HTML 会不会取代 Markdown？ · Engineering Docs</title>
+<meta name="description" content="HTML 与 Markdown 之争的取证与结论">
+<style>
+:root {
+  --bg:#f7f8fa; --surface:#fff; --surface-2:#f1f4f8; --text:#182230;
+  --muted:#667085; --border:#e3e8ef; --accent:#5268e8; --accent-soft:#eef0ff;
+  --code-bg:#111827; --code-text:#e5e7eb; --success:#16805d; --warning:#a15c07;
+  --danger:#b42318; --shadow:0 8px 28px rgba(16,24,40,.05);
+  --sidebar:252px; --toc:220px; --content:800px;
+}
+html[data-theme="dark"] {
+  --bg:#0d1117; --surface:#141a23; --surface-2:#1b2430; --text:#e6edf3;
+  --muted:#9aa7b5; --border:#2a3442; --accent:#9aa7ff; --accent-soft:#252947;
+  --code-bg:#080b10; --code-text:#e6edf3; --success:#63d6a4; --warning:#f4bf75;
+  --danger:#ff938b; --shadow:0 8px 28px rgba(0,0,0,.16);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:88px}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.78 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  -webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+button,input{font:inherit}
+button{cursor:pointer}
+.topbar{height:60px;position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:18px;padding:0 24px;
+  background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;gap:10px;min-width:220px;font-weight:750;letter-spacing:-.02em}
+.brand-mark{display:grid;place-items:center;width:28px;height:28px;border-radius:8px;
+  background:var(--accent);color:#fff;font-size:13px;font-weight:800}
+.crumb{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+.icon-btn,.menu-btn{height:34px;min-width:36px;padding:0 10px;border:1px solid var(--border);
+  border-radius:8px;background:var(--surface);color:var(--text)}
+.icon-btn:hover,.menu-btn:hover{background:var(--surface-2)}
+.search{width:min(260px,25vw);height:35px;padding:0 12px;border:1px solid var(--border);
+  border-radius:9px;background:var(--bg);color:var(--text);outline:none}
+.search:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
+.progress{position:fixed;top:59px;left:0;height:2px;background:var(--accent);width:0;z-index:30}
+.layout{display:grid;grid-template-columns:var(--sidebar) minmax(0,1fr) var(--toc);min-height:calc(100vh - 60px)}
+.sidebar{position:sticky;top:60px;height:calc(100vh - 60px);overflow:auto;padding:28px 16px 36px 22px;
+  border-right:1px solid var(--border);background:var(--surface)}
+.nav-label{margin:0 0 12px 10px;color:var(--muted);font-size:11px;font-weight:800;
+  letter-spacing:.12em;text-transform:uppercase}
+.nav-list{list-style:none;padding:0;margin:0}
+.nav-list li{margin:3px 0}
+.nav-list a{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:7px;
+  color:var(--muted);font-size:13px;line-height:1.45}
+.nav-list a:hover{background:var(--surface-2);color:var(--text);text-decoration:none}
+.nav-list a.active{background:var(--accent-soft);color:var(--accent);font-weight:650}
+.nav-list a:focus-visible,.toc-list a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.nav-dot{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.6;flex:none}
+.side-note{margin:30px 8px 0;padding:13px;border:1px solid var(--border);border-radius:10px;
+  color:var(--muted);font-size:12px;line-height:1.6}
+.side-note strong{display:block;color:var(--text);margin-bottom:3px}
+main{min-width:0;padding:46px clamp(22px,5vw,72px) clamp(90px,42vh,520px)}
+.article{max-width:var(--content);margin:0 auto}
+.doc-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:18px;
+  color:var(--muted);font-size:12px}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border:1px solid var(--border);
+  border-radius:999px;background:var(--surface);font-size:11px;font-weight:650}
+.pill.status{color:var(--success);border-color:color-mix(in srgb,var(--success) 30%,var(--border));
+  background:color-mix(in srgb,var(--success) 7%,var(--surface))}
+h1,h2,h3,h4{line-height:1.3;letter-spacing:-.035em;scroll-margin-top:88px}
+h1{font-size:clamp(30px,4vw,40px);margin:0 0 14px;font-weight:780}
+.lead{font-size:17px;color:var(--muted);line-height:1.8;margin:0 0 25px;max-width:720px}
+.doc-info{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:26px 0 34px}
+.info-card{padding:13px 15px;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
+.info-label{font-size:11px;color:var(--muted);margin-bottom:3px}
+.info-value{font-size:13px;font-weight:650;overflow-wrap:anywhere}
+hr{border:0;border-top:1px solid var(--border);margin:32px 0}
+h2{font-size:25px;margin:42px 0 15px;padding-top:5px}
+h3{font-size:19px;margin:28px 0 10px}
+h4{font-size:16px;margin:22px 0 8px}
+p{margin:0 0 16px}
+ul,ol{padding-left:24px;margin:10px 0 20px}
+li{padding-left:3px;margin:5px 0}
+blockquote{margin:20px 0;padding:14px 18px;border-left:3px solid var(--accent);
+  border-radius:0 8px 8px 0;background:var(--accent-soft);color:var(--text)}
+.callout{display:flex;gap:12px;margin:20px 0;padding:15px 17px;border:1px solid var(--border);
+  border-radius:10px;background:var(--surface)}
+.callout .callout-icon{font-weight:800;color:var(--accent)}
+.callout.warning .callout-icon{color:var(--warning)}
+.callout.danger .callout-icon{color:var(--danger)}
+table{width:100%;border-collapse:separate;border-spacing:0;margin:18px 0 24px;
+  border:1px solid var(--border);border-radius:10px;overflow:hidden;font-size:13.5px}
+th,td{padding:11px 13px;text-align:left;vertical-align:top;
+  border-bottom:1px solid var(--border);border-right:1px solid var(--border)}
+th{background:var(--surface-2);font-weight:700}
+tr:last-child td{border-bottom:0}
+td:last-child,th:last-child{border-right:0}
+tr:nth-child(even) td{background:color-mix(in srgb,var(--surface) 55%,var(--bg))}
+td.num,th.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+code{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;font-size:.88em;
+  padding:.16em .38em;border-radius:5px;background:var(--surface-2);overflow-wrap:anywhere}
+pre{position:relative;overflow:auto;margin:18px 0 24px;padding:19px 20px;border:1px solid #263244;
+  border-radius:11px;background:var(--code-bg);color:var(--code-text);font-size:13px;
+  line-height:1.7;tab-size:2}
+pre code{padding:0;background:transparent;color:inherit;font-size:inherit;overflow-wrap:normal}
+.copy-code{position:absolute;right:9px;top:9px;padding:4px 8px;border:1px solid #465164;
+  border-radius:6px;background:#202938;color:#d9e2f0;font-size:11px}
+.copy-code:hover{background:#303d50}
+.toc{position:sticky;top:60px;height:calc(100vh - 60px);overflow:auto;padding:32px 18px 30px 16px}
+.toc-title{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.1em;margin-bottom:12px}
+.toc-list{list-style:none;padding:0;margin:0;border-left:1px solid var(--border)}
+.toc-list a{display:block;padding:5px 0 5px 13px;margin-left:-1px;border-left:2px solid transparent;
+  color:var(--muted);font-size:12px;line-height:1.5}
+.toc-list a.level-3{padding-left:25px;font-size:11px}
+.toc-list a.active{border-left-color:var(--accent);color:var(--accent);font-weight:650}
+.doc-footer{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:58px;
+  padding-top:18px;border-top:1px solid var(--border);color:var(--muted);font-size:12px}
+.mobile-menu{display:none}
+@media(max-width:1180px){:root{--toc:185px;--sidebar:220px}.brand{min-width:190px}.toc{padding-right:10px}}
+@media(max-width:900px){.layout{grid-template-columns:minmax(0,1fr)}.sidebar{display:none;position:fixed;
+  z-index:25;left:0;top:60px;width:270px;height:calc(100vh - 60px);box-shadow:var(--shadow)}
+  .sidebar.open{display:block}.toc{display:none}main{padding:32px 22px 70px}.brand{min-width:auto}
+  .crumb{display:none}.mobile-menu{display:inline-block}.doc-info{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.topbar{padding:0 12px;gap:8px}.brand-name{display:none}.search{width:36px;padding:0 8px}
+  .search:focus{width:150px}.top-actions{gap:5px}main{padding:26px 17px 55px}
+  .doc-info{grid-template-columns:1fr}h2{font-size:22px}table{display:block;overflow-x:auto;white-space:normal}
+  .lead{font-size:15px}}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<header class="topbar">
+  <button class="menu-btn mobile-menu" id="menuBtn" aria-label="打开文档导航">☰</button>
+  <a class="brand" href="#"><span class="brand-mark">M</span><span class="brand-name">md-to-html</span></a>
+  <div class="crumb">研究纪要 / HTML 会不会取代 Markdown？</div>
+  <div class="top-actions">
+    <input class="search" id="search" type="search" placeholder="查找本页内容…" aria-label="查找本页内容">
+    <button class="icon-btn" id="themeBtn" aria-label="切换明暗主题" title="切换明暗主题">◐</button>
+    <a class="icon-btn" id="mdLink" href="research.md" title="查看原始 Markdown">↓ 原始 .md</a>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <p class="nav-label">文档导航</p>
+    <ul class="nav-list" id="navList"></ul>
+    <div class="side-note">
+      <strong>真源</strong>
+      本页由 <code>research.md</code> 渲染；导航与目录从正文标题生成，不额外写入内容。
+    </div>
+  </aside>
+
+  <main>
+    <article class="article" id="article">
+      <div class="doc-meta">
+        <span class="pill">研究纪要</span>
+        <span class="pill status">● 取证完成</span>
+        <span>更新于 2026-10-30</span><span>·</span><span>修订 B</span>
+      </div>
+
+      <h1 id="top">HTML 会不会取代 Markdown？</h1>
+      <p class="lead">这场讨论真实存在，有明确起点、有产品落地，但它的主张范围比传闻窄得多：换掉的是给人的那一层，不是真源。</p>
+
+      <div class="doc-info">
+        <div class="info-card"><div class="info-label">文档类型</div><div class="info-value">技术调研</div></div>
+        <div class="info-card"><div class="info-label">证据强度</div><div class="info-value">7 组实证 + 反方章节</div></div>
+        <div class="info-card"><div class="info-label">结论</div><div class="info-value">MD 为真源，HTML 为阅读面</div></div>
+      </div>
+
+      <h2 id="premises">被推翻的三个前提</h2>
+      <p>第一，「用 HTML 替代 MD」确实存在，但只在一层成立。第二个前提——「AI 生成的 markdown 动辄数千行」——没有任何一手信源支持；可考的最大量级是 <strong>400 行、1,800 词、5k tokens</strong>。第三个前提被最硬的数据直接反驳：「HTML 更适合 LLM」并不成立。</p>
+
+      <div class="callout">
+        <span class="callout-icon">i</span>
+        <div><strong>先说结论</strong><br>换掉的只是「给人的那一层」。所有严肃信源都同时保留 markdown 作为真源：给 agent 读的、要 diff 的、要协作编辑的，继续用 markdown。</div>
+      </div>
+
+      <h3 id="numbers">三组实证数据</h3>
+      <table>
+        <thead><tr><th>主张</th><th class="num">数字</th><th>出处</th></tr></thead>
+        <tbody>
+          <tr><td>同一页 HTML 与 Markdown（agent 读取）</td><td class="num">16,180 → 3,150</td><td>Cloudflare, 2026-02</td></tr>
+          <tr><td>文档站 agent 找路失败（404 / 任务）</td><td class="num">2.23 / 1.42 / 0.11</td><td>Mintlify, 2,400 次运行</td></tr>
+          <tr><td>模型手写 HTML 相对手写 Markdown</td><td class="num">1.9–2.2×</td><td>Tim Schipper 实测</td></tr>
+          <tr><td>Markdown 草稿 + 工具渲染 vs 手写 HTML</td><td class="num">≈ 1/8</td><td>answer-me-with-html 自测</td></tr>
+        </tbody>
+      </table>
+
+      <p>注意第二行的三个数字：HTML 是 2.23，纯 Markdown 是 1.42，而「Markdown 加一份索引地图」是 0.11。差别不在标记语言，在有没有地图。</p>
+
+      <blockquote>
+        The most surprising find was that markdown itself wasn't the fix, the map was. Plain markdown was arguably the worst of the four formats.
+      </blockquote>
+
+      <h3 id="cost">成本差在「谁写 HTML」</h3>
+      <p>让模型直接吐 HTML，成本是 markdown 的靠近两倍；而「模型只写 markdown 草稿、由确定性渲染器出 HTML」，成本是手写 HTML 的约八分之一。这条决定了实现形态：</p>
+
+      <pre><code class="language-python">def render(md: str, profile: Profile | None = None) -&gt; str:
+    """确定性渲染：同一输入 + 无偏好 = 逐字节相同的输出。"""
+    doc = parse(md)                 # 只解析，不改写文字
+    doc = visualize(doc, rules=STRICT)   # 图形化：条件不满足则原样保留
+    html = layout(doc, toc=static_toc(doc))  # 目录在构建期生成，静态写入
+    return inject_theme(html, profile) or html
+</code><button class="copy-code" type="button">复制代码</button></pre>
+
+      <div class="callout warning">
+        <span class="callout-icon">!</span>
+        <div><strong>尚未确定</strong><br>无偏好时的哈希断言、以及 <code>--profile</code> 的 JSON schema 版本号，要等渲染器写出来才能钉死。</div>
+      </div>
+
+      <h2 id="implications">对本仓库的含义</h2>
+      <ol>
+        <li>真源永远是 markdown；HTML 是可丢弃、可重建的阅读面。</li>
+        <li>不做打印样式——需要纸面稿的人应该拿原始 markdown，页面给出口即可。</li>
+        <li>承重件是导航，不是配色：目录、锚点、索引。</li>
+        <li>图形化只在机械条件全部满足时启用；画错的图不会被 diff 审查发现。</li>
+      </ol>
+
+      <h2 id="next">下一步</h2>
+      <p>技术栈与渲染器的第一刀还没切。已定的是六条架构决策（见 <code>docs/adr/</code>），未定的是语言、模板引擎与图形化规则的实现细节。</p>
+
+      <div class="doc-footer">
+        <span>由 <code>research.md</code> 渲染 · 修订 B</span>
+        <span>最后更新：2026-10-30</span>
+      </div>
+    </article>
+  </main>
+
+  <aside class="toc">
+    <div class="toc-title">本页目录</div>
+    <ul class="toc-list" id="tocList"></ul>
+  </aside>
+</div>
+
+<script>
+(() => {
+  const article = document.getElementById('article');
+  const tocList = document.getElementById('tocList');
+  const navList = document.getElementById('navList');
+  const headings = [...article.querySelectorAll('h2, h3')];
+
+  // 目录与左侧导航都从正文标题生成，不引入正文之外的内容
+  headings.forEach((heading, index) => {
+    if (!heading.id) heading.id = 'section-' + index;
+    const li = document.createElement('li');
+    const link = document.createElement('a');
+    link.href = '#' + heading.id;
+    link.textContent = heading.textContent;
+    link.className = heading.tagName.toLowerCase() === 'h3' ? 'level-3' : '';
+    li.appendChild(link);
+    tocList.appendChild(li);
+  });
+
+  [...article.querySelectorAll('h2')].forEach(h => {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.innerHTML = '<span class="nav-dot"></span>';
+    a.append(h.textContent);
+    li.appendChild(a);
+    navList.appendChild(li);
+  });
+
+  // 代码块复制
+  article.querySelectorAll('pre').forEach(pre => {
+    if (pre.querySelector('.copy-code')) return;
+    const button = document.createElement('button');
+    button.className = 'copy-code'; button.type = 'button'; button.textContent = '复制代码';
+    pre.appendChild(button);
+  });
+  article.addEventListener('click', async event => {
+    const button = event.target.closest('.copy-code');
+    if (!button) return;
+    const code = button.parentElement.querySelector('code');
+    if (!code) return;
+    try {
+      await navigator.clipboard.writeText(code.innerText);
+      button.textContent = '已复制';
+      setTimeout(() => button.textContent = '复制代码', 1200);
+    } catch { button.textContent = '请手动复制'; }
+  });
+
+  // 当前章节高亮：scroll + rect.top 阈值（不用 IntersectionObserver）
+  const tocLinks = [...tocList.querySelectorAll('a')];
+  const navLinks = [...navList.querySelectorAll('a')];
+
+  // h3 归属到它上面最近的 h2，左侧导航（只有 h2）才能在任意小节里都保持高亮
+  const byId = new Map(headings.map(h => [h.id, h]));
+  const owner = new Map();
+  let lastH2 = null;
+  headings.forEach(h => {
+    if (h.tagName === 'H2') lastH2 = h;
+    owner.set(h, lastH2);
+  });
+
+  // 阈值要比 scroll-padding-top（88px）略大，否则锚点跳转后标题正好停在 88px，
+  // 命中不到 `<= 88` 这个条件，高亮会停在上一节
+  const THRESHOLD = 92;
+  let ticking = false;
+  let lockedUntil = 0;   // 点击导航后的平滑滚动期间，不让 spy 抢走高亮
+
+  const setActive = id => {
+    const h = byId.get(id);
+    if (!h) return;
+    tocLinks.forEach(a => a.classList.toggle('active', a.hash === '#' + id));
+    const own = owner.get(h) || h;
+    navLinks.forEach(a => a.classList.toggle('active', a.hash === '#' + own.id));
+  };
+
+  const spy = () => {
+    ticking = false;
+    if (performance.now() < lockedUntil) return;
+    let current = headings[0];
+    for (const h of headings) {
+      // 只看已经越过判定线的标题；页面尾部留了足够滚动余量，靠后的标题也能到达这条线
+      if (h.getBoundingClientRect().top <= THRESHOLD) current = h;
+    }
+    setActive(current.id);
+  };
+
+  addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(spy); } }, {passive:true});
+  spy();
+
+  // 点击即刻高亮（不等平滑滚动结束），并短暂锁定，避免途中被路过的小节覆盖
+  const onClick = e => {
+    const a = e.target.closest('a');
+    if (!a || !a.hash) return;
+    e.preventDefault();
+    const id = a.hash.slice(1);
+    setActive(id);
+    lockedUntil = performance.now() + 900;
+    const target = byId.get(id);
+    if (target) target.scrollIntoView({behavior:'smooth', block:'start'});
+    setTimeout(spy, 940);
+    document.getElementById('sidebar').classList.remove('open');
+    history.replaceState(null, '', '#' + id);
+  };
+  navList.addEventListener('click', onClick);
+  tocList.addEventListener('click', onClick);
+
+  // 轻量查找：回车跳到下一处匹配
+  const search = document.getElementById('search');
+  let lastQuery = '', lastIndex = -1;
+  search.addEventListener('keydown', event => {
+    if (event.key !== 'Enter') return;
+    const query = search.value.trim().toLocaleLowerCase();
+    if (!query) return;
+    if (query !== lastQuery) { lastQuery = query; lastIndex = -1; }
+    const nodes = [...article.querySelectorAll('h1,h2,h3,h4,p,li,td,blockquote')];
+    const matches = nodes.filter(n => n.textContent.toLocaleLowerCase().includes(query));
+    if (!matches.length) { search.setCustomValidity('未找到匹配内容'); search.reportValidity(); return; }
+    search.setCustomValidity('');
+    lastIndex = (lastIndex + 1) % matches.length;
+    matches[lastIndex].scrollIntoView({behavior:'smooth', block:'center'});
+    matches[lastIndex].animate(
+      [{backgroundColor:'color-mix(in srgb, var(--accent) 22%, transparent)'}, {backgroundColor:'transparent'}],
+      {duration:1300});
+  });
+
+  // 主题：先跟随系统，用户点过则记住
+  const root = document.documentElement;
+  try {
+    const saved = localStorage.getItem('md2h-theme');
+    if (saved === 'dark' || saved === 'light') root.dataset.theme = saved;
+    else if (matchMedia('(prefers-color-scheme: dark)').matches) root.dataset.theme = 'dark';
+  } catch {}
+  document.getElementById('themeBtn').addEventListener('click', () => {
+    root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem('md2h-theme', root.dataset.theme); } catch {}
+  });
+  document.getElementById('menuBtn').addEventListener('click',
+    () => document.getElementById('sidebar').classList.toggle('open'));
+
+  // 阅读进度
+  const progress = document.getElementById('progress');
+  const update = () => {
+    const max = document.documentElement.scrollHeight - innerHeight;
+    progress.style.width = (max > 0 ? scrollY / max * 100 : 0) + '%';
+  };
+  addEventListener('scroll', update, {passive:true});
+  addEventListener('resize', update);
+  update();
+})();
+</script>
+</body>
+</html>
