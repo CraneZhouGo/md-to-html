@@ -22,10 +22,16 @@ export function textWidth(s) {
 export const boxWidth = (text, min = BOX_MIN) =>
   Math.max(min, Math.ceil(textWidth(text) * CHAR_W) + PAD_X * 2);
 
-const DEFS = '<defs>' +
-  '<marker id="dg-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="dg-head"/></marker>' +
-  '<marker id="dg-arrow-open" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M1,1 L9,5 L1,9" class="dg-head-open"/></marker>' +
-  '</defs>';
+const MARKERS = [
+  ['dg-arrow', '<path d="M0,0 L10,5 L0,10 z" class="dg-head"/>'],
+  ['dg-arrow-open', '<path d="M1,1 L9,5 L1,9" class="dg-head-open"/>'],
+  ['dg-tri', '<path d="M1,1 L9,5 L1,9 z" class="dg-tri"/>'],
+  ['dg-diamond-f', '<path d="M1,5 L5,1 L9,5 L5,9 z" class="dg-dia-f"/>'],
+  ['dg-diamond-o', '<path d="M1,5 L5,1 L9,5 L5,9 z" class="dg-dia-o"/>'],
+];
+
+const DEFS = '<defs>' + MARKERS.map(([id, body]) =>
+  `<marker id="${id}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">${body}</marker>`).join('') + '</defs>';
 
 export function wrap(width, height, body, label = '图示') {
   const w = Math.round(width), h = Math.round(height);
@@ -74,4 +80,23 @@ export function clipLine(a, b) {
   const [x1, y1] = shrink(ax, ay, a.w, a.h, 1);
   const [x2, y2] = shrink(bx, by, b.w, b.h, -1);
   return { x1, y1, x2, y2 };
+}
+
+
+/** 有向图分层：按最长入边深度，遇环不死循环（类图与流程图共用） */
+export function layerize(nodes, edges) {
+  const depth = new Map(nodes.map(n => [n.id, 0]));
+  for (let pass = 0; pass < nodes.length; pass++) {
+    let changed = false;
+    for (const e of edges) {
+      if (!depth.has(e.from) || !depth.has(e.to)) continue;
+      const want = depth.get(e.from) + 1;
+      if (want > depth.get(e.to) && want <= nodes.length) { depth.set(e.to, want); changed = true; }
+    }
+    if (!changed) break;
+  }
+  const max = Math.max(0, ...depth.values());
+  const layers = Array.from({ length: max + 1 }, () => []);
+  for (const n of nodes) layers[depth.get(n.id)].push(n);
+  return layers.filter(l => l.length);
 }

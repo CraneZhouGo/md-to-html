@@ -226,3 +226,49 @@ sequenceDiagram
   Note over A: 这一段还不支持
   A->>B: x
 ```
+
+## mermaid：类图
+
+```mermaid
+classDiagram
+  class Order {
+    +String id
+    +pay()
+  }
+  Customer "1" --> "*" Order : places
+  Order <|-- Refund
+```
+
+## 用例图（本项目扩展语法）
+
+```usecase
+actor 用户
+actor 管理员
+usecase 登录
+usecase 下单
+用户 --> 登录
+用户 --> 下单
+管理员 --> 登录
+```
+
+## mermaid：排期图
+
+```mermaid
+gantt
+  title 上线计划
+  dateFormat YYYY-MM-DD
+  section 设计
+  需求评审 :a1, 2026-01-05, 5d
+  方案设计 :a2, after a1, 7d
+  section 开发
+  编码 :2026-01-20, 20d
+```
+
+## mermaid：排期图缺 dateFormat 要退回
+
+```mermaid
+gantt
+  title 没写日期格式
+  section 设计
+  需求评审 :2026-01-05, 5d
+```

@@ -201,6 +201,19 @@ figure.diagram svg.dg{display:block;max-width:100%;height:auto;margin:0 auto}
 .dg-dot{fill:color-mix(in srgb, var(--accent) 70%, var(--text))}
 .dg-dot-ring{fill:none;stroke:color-mix(in srgb, var(--accent) 70%, var(--text));stroke-width:1.2}
 .dg-rel{stroke-width:1.4}
+/* 类图 / 用例图 / 排期图 */
+.dg-class{fill:color-mix(in srgb, var(--accent) 3%, var(--surface))}
+.dg-strong{fill:var(--text);font-size:12.5px;font-weight:700}
+.dg-tri{fill:var(--surface);stroke:color-mix(in srgb, var(--accent) 55%, var(--border));stroke-width:1.2}
+.dg-dia-f{fill:color-mix(in srgb, var(--accent) 60%, var(--text))}
+.dg-dia-o{fill:var(--surface);stroke:color-mix(in srgb, var(--accent) 60%, var(--text));stroke-width:1.2}
+.dg-actor{fill:none;stroke:color-mix(in srgb, var(--accent) 60%, var(--text));stroke-width:1.5}
+.dg-actor-line{stroke:color-mix(in srgb, var(--accent) 60%, var(--text));stroke-width:1.5;fill:none}
+.dg-usecase{fill:color-mix(in srgb, var(--accent) 6%, var(--surface))}
+.dg-grid{stroke:color-mix(in srgb, var(--accent) 16%, var(--border));stroke-width:1;stroke-dasharray:2 4}
+.dg-band{fill:color-mix(in srgb, var(--accent) 5%, transparent)}
+.dg-bar{fill:color-mix(in srgb, var(--accent) 45%, var(--surface));
+  stroke:color-mix(in srgb, var(--accent) 65%, var(--border));stroke-width:1}
 figure.diagram[data-kind="svg"]{padding:6px 0}
 pre[data-lang]:not([data-lang=""])::before{content:attr(data-lang);position:absolute;top:9px;left:14px;
   font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}

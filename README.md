@@ -66,7 +66,8 @@ node src/cli.mjs doc.md --out out --embed
 | `- 术语：定义` 列表 | **定义卡片**（每一项都形如"术语：定义"，术语 ≤18 字，无嵌套） | ADR-0006 P1 |
 | 有序列表（3–8 项） | **步骤流**：自动去掉「1、」「（1）」等重复编号；过半项含「如果/或者/可以选择」等可选措辞则不转 | ADR-0006 P2 |
 | 代码块 | 底色由强调色推导（`color-mix`）+ 轻量语法高亮 + 语言标签 + 复制按钮 | ADR-0004 / 0007 |
-| ` ```mermaid ` 代码块 | 四种图型的子集：`flowchart` / `sequenceDiagram` / `stateDiagram-v2` / `erDiagram`。解析失败原样退回代码块 | ADR-0009 |
+| ` ```mermaid ` 代码块 | 六种图型的子集：`flowchart` / `sequenceDiagram` / `stateDiagram-v2` / `erDiagram` / `classDiagram` / `gantt` | ADR-0009 / 0010 |
+| ` ```usecase ` 代码块 | 用例图（mermaid 无此语法，本项目扩展）：`actor` / `usecase` / `A --> B` | ADR-0010 |
 | ASCII 架构图（```` ```text ```` + 制表符/箭头） | **画成内联 SVG**（竖向分层 / 树形 / 单行链 / 续行链四种写法）；识别不了的退回文本图示（行高 1.16、淡强调色底）。SVG 里文字仍是 `<text>`，可搜可选中 | ADR-0008 |
 | front-matter | 页眉胶囊标签 + 文档信息卡 | 模板 |
 
@@ -119,6 +120,9 @@ npm test
 | `src/diagrams/layered.mjs` | 四种 ASCII 写法 → 内联 SVG；布局确定性、朝向自动选、边多时走总线 |
 | `src/diagrams/svg.mjs` | SVG 原语：形状、连线裁剪、标签光晕、marker |
 | `src/diagrams/mermaid.mjs` | mermaid 子集解析 + 三种布局（分层 / 时序 / 网格 ER） |
+| `src/diagrams/class.mjs` | 类图：成员块、继承/实现/组合/聚合/依赖（不同 marker）、基数 |
+| `src/diagrams/usecase.mjs` | 用例图：actor 线条人形 + 椭圆用例 + 两列布局 |
+| `src/diagrams/gantt.mjs` | 排期图：`after` 依赖链、成环检测、月份刻度与分区底色 |
 
 决策依据全部在 `docs/adr/`：0001 真源与阅读面 · 0002 单文件与静态导航 · 0003/0006 不改内容与确定性图形化 · 0004/0007 视觉契约 · 0005 个性化边界。
 

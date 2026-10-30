@@ -202,6 +202,15 @@ export function renderMarkdown(markdown, env = {}) {
 `;
     // 架构图：先试画成 SVG（文字仍是 <text>，可搜可选中）；画不出来再退回文本图示
     // mermaid 子集：解析成功就画成 SVG；失败就原样当代码块（绝不画错）
+    // `usecase` 是 mermaid 没有的图型（本项目扩展），用独立语言标记避免污染 mermaid
+    const isUsecase = /^use-?cases?$/i.test(lang);
+    if (isUsecase || /^mermaid$/i.test(lang)) {
+      const srcText = isUsecase ? `usecaseDiagram
+${token.content}` : token.content;
+      const r = renderMermaid(srcText);
+      if (r) return `<figure class="diagram" data-kind="svg" data-diagram="${r.type}">${r.svg}</figure>
+`;
+    }
     if (/^mermaid$/i.test(lang)) {
       const r = renderMermaid(token.content);
       if (r) return `<figure class="diagram" data-kind="svg" data-diagram="${r.type}">${r.svg}</figure>

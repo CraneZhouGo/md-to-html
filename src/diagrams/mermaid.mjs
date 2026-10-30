@@ -4,8 +4,11 @@
 
 import {
   esc, textWidth, boxWidth, wrap, label, shape, path, haloLabel, clipLine,
-  MARGIN, BOX_H, CHAR_W,
+  MARGIN, BOX_H, CHAR_W, layerize,
 } from './svg.mjs';
+import { parseClass, drawClass } from './class.mjs';
+import { parseUsecase, drawUsecase } from './usecase.mjs';
+import { parseGantt, drawGantt } from './gantt.mjs';
 
 const clean = s => String(s ?? '').trim();
 const isBlank = s => !clean(s) || clean(s).startsWith('%%');
@@ -196,27 +199,6 @@ export function parseEr(src) {
 
 const GAP_X = 44, GAP_Y = 62, GAP_NODE_X = 26, GAP_NODE_Y = 22;
 const fitsColumn = w => w <= 820;
-
-/** 有向图分层：按最长入边深度，遇环不死循环 */
-function layerize(nodes, edges) {
-  const depth = new Map(nodes.map(n => [n.id, 0]));
-  for (let pass = 0; pass < nodes.length; pass++) {
-    let changed = false;
-    for (const e of edges) {
-      if (!depth.has(e.from) || !depth.has(e.to)) continue;
-      const want = depth.get(e.from) + 1;
-      if (want > depth.get(e.to) && want <= nodes.length) {
-        depth.set(e.to, want);
-        changed = true;
-      }
-    }
-    if (!changed) break;
-  }
-  const max = Math.max(0, ...depth.values());
-  const layers = Array.from({ length: max + 1 }, () => []);
-  for (const n of nodes) layers[depth.get(n.id)].push(n);
-  return layers.filter(l => l.length);
-}
 
 function drawGraph(graph, { terminalIds = new Set() } = {}) {
   const { nodes, edges } = graph;
@@ -482,6 +464,9 @@ export function renderMermaid(src) {
   else if (/^sequenceDiagram\b/i.test(first)) { graph = parseSequence(src); drawer = drawSequence; }
   else if (/^stateDiagram(-v2)?\b/i.test(first)) { graph = parseState(src); drawer = drawState; }
   else if (/^erDiagram\b/i.test(first)) { graph = parseEr(src); drawer = drawEr; }
+  else if (/^classDiagram\b/i.test(first)) { graph = parseClass(src); drawer = drawClass; }
+  else if (/^usecaseDiagram\b/i.test(first)) { graph = parseUsecase(src); drawer = drawUsecase; }
+  else if (/^gantt\b/i.test(first)) { graph = parseGantt(src); drawer = drawGantt; }
   if (!graph) return null;
 
   const svg = drawer(graph);
